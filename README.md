@@ -174,6 +174,11 @@ area, and larger designs may miss a link. Check the answers, especially those wi
 Too large for GitHub, or third-party: to rebuild, add the GGUF model, llama.cpp and MariaDB to `model/`, `engine/` and
 `mariadb/` inside `pendrive/TextToSQL/`. Course documents are not included.
 
+## 📄 License
+
+[MIT](LICENSE) for the code in this repository. Qwen2.5-Coder, llama.cpp, MariaDB and the public dataset keep their own
+licenses.
+
 ## 👤 Author
 
 **Mohammad Ali Nabil**
