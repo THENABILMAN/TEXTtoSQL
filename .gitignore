@@ -9,3 +9,4 @@ work/
 train/hf/
 train/out/
 __pycache__/
+train/*.jsonl
