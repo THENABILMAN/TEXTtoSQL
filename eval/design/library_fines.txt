@@ -1,0 +1,7 @@
+Scenario: A city library network needs a relational database.
+
+Each Branch has a Branch_ID, Branch_Name and City. Each Book has an ISBN, Title and Publish_Year. A branch keeps many books and the same book can be kept in many branches; a Stock table stores how many copies (Copy_Count) of each book a branch has.
+
+Members have a Member_ID, Full_Name, Email and the Branch_ID where they registered. A member can have at most one Membership_Card with a Card_Number, Issue_Date and Expiry_Date.
+
+A Borrowing table records which member borrowed which book, the Borrow_Date and the Return_Date, which is empty until the book comes back. The same member can borrow the same book again on another day.

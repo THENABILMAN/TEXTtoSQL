@@ -51,7 +51,7 @@ static class Job
 
 class SqlResult { public bool Ok; public string Output = ""; public string Error = ""; }
 
-class Column { public string Name, Type, Ref, RefGuess; public bool Pk; public List<string> Samples; }
+class Column { public string Name, Type, Ref, RefGuess; public bool Pk, Uni; public List<string> Samples; }
 class Table { public string Name; public bool IsView; public List<Column> Cols = new List<Column>(); public long Rows; }
 
 // ------------------------------------------------------------------ sandbox database
@@ -179,7 +179,7 @@ class Sandbox
         foreach (var c in Rows("SELECT table_name, column_name, column_type, column_key FROM information_schema.columns WHERE table_schema=DATABASE() ORDER BY table_name, ordinal_position"))
         {
             var t = Tables.FirstOrDefault(x => x.Name.Equals(c[0], StringComparison.OrdinalIgnoreCase));
-            if (t != null) t.Cols.Add(new Column { Name = c[1], Type = Regex.Replace(c[2], @"^(int|bigint|smallint|tinyint)\(\d+\)", "$1").ToUpperInvariant().StartsWith("ENUM") ? c[2] : Regex.Replace(c[2], @"^(int|bigint|smallint|tinyint)\(\d+\)", "$1").ToUpperInvariant(), Pk = c.Length > 3 && c[3] == "PRI" });
+            if (t != null) t.Cols.Add(new Column { Name = c[1], Type = Regex.Replace(c[2], @"^(int|bigint|smallint|tinyint)\(\d+\)", "$1").ToUpperInvariant().StartsWith("ENUM") ? c[2] : Regex.Replace(c[2], @"^(int|bigint|smallint|tinyint)\(\d+\)", "$1").ToUpperInvariant(), Pk = c.Length > 3 && c[3] == "PRI", Uni = c.Length > 3 && c[3] == "UNI" });
         }
         foreach (var k in Rows("SELECT table_name, column_name, referenced_table_name, referenced_column_name FROM information_schema.key_column_usage WHERE table_schema=DATABASE() AND referenced_table_name IS NOT NULL"))
         {
@@ -632,6 +632,135 @@ class Assistant
         if (cur != null) res.Add(cur.ToString());
         return res.Select(x => x.Trim()).Where(x => x.Length > 2).ToList();
     }
+    // ---- scenario text -> new database, no file needed
+    const string DesignRules =
+        "You are a relational database designer for a university MySQL lab. Turn the scenario into CREATE TABLE statements for MySQL.\n" +
+        "Rules:\n" +
+        "- One table for each entity in the scenario, and no extra tables. Use the table and column names given in the scenario exactly, with singular table names.\n" +
+        "- Include every attribute the scenario mentions and do not invent others.\n" +
+        "- Every table has a PRIMARY KEY. IDs are INT. Names are VARCHAR(100), phone numbers, ISBN, card and code numbers VARCHAR(20), dates DATE, money DECIMAL(10,2).\n" +
+        "- One-to-one ('at most one'): the foreign key column is also UNIQUE.\n" +
+        "- One-to-many (A has, offers, keeps or places several B): table B holds the foreign key to A. Check every sentence for such a link. Many-to-many: a junction table holds both foreign keys.\n" +
+        "- A junction table that records events over time has a composite PRIMARY KEY of both foreign keys plus the date and the type.\n" +
+        "- Declare every link as FOREIGN KEY (col) REFERENCES Parent(col). Foreign key columns and names are NOT NULL.\n" +
+        "- Only list fixed values with ENUM when the scenario gives all of them; 'e.g.' values use VARCHAR.\n" +
+        "- Create parent tables first. No INSERT, no USE, no comments, no explanations.\n";
+    const string DesignExample =
+        "Scenario: A school tracks Teachers (Teacher_ID, Name) and Courses (Course_ID, Title, and the Teacher_ID who teaches it). Students have Student_ID and Full_Name. " +
+        "A student can take many courses and a course has many students; an Attendance table records the student, the course, the exact Class_Date and the Status.";
+    const string DesignAnswer =
+        "CREATE TABLE Teacher (\n  Teacher_ID INT PRIMARY KEY,\n  Name VARCHAR(100) NOT NULL\n);\n\n" +
+        "CREATE TABLE Course (\n  Course_ID INT PRIMARY KEY,\n  Title VARCHAR(100) NOT NULL,\n  Teacher_ID INT NOT NULL,\n  FOREIGN KEY (Teacher_ID) REFERENCES Teacher(Teacher_ID)\n);\n\n" +
+        "CREATE TABLE Student (\n  Student_ID INT PRIMARY KEY,\n  Full_Name VARCHAR(100) NOT NULL\n);\n\n" +
+        "CREATE TABLE Attendance (\n  Student_ID INT NOT NULL,\n  Course_ID INT NOT NULL,\n  Class_Date DATE NOT NULL,\n  Status VARCHAR(20) NOT NULL,\n  PRIMARY KEY (Student_ID, Course_ID, Class_Date, Status),\n" +
+        "  FOREIGN KEY (Student_ID) REFERENCES Student(Student_ID),\n  FOREIGN KEY (Course_ID) REFERENCES Course(Course_ID)\n);";
+
+    public static bool IsDesign(string q)
+    {
+        return q.Length > 120 && Regex.IsMatch(q, @"\bdatabase design\b|\bscenario\s*:|\bdesign (a|an|the) (\w+ )?(database|schema)\b|\bneeds? (a|to build a|to design a) (relational )?database\b", RegexOptions.IgnoreCase);
+    }
+
+    // Keeps only table definitions and puts every parent before its children.
+    static string DesignScript(string raw)
+    {
+        int fence = raw.IndexOf("```", StringComparison.Ordinal); if (fence >= 0) raw = raw.Substring(0, fence);
+        raw = Regex.Replace(raw, @"--[^\n]*|/\*.*?\*/", "", RegexOptions.Singleline);
+        var st = raw.Split(';').Select(x => x.Trim()).Where(x => Regex.IsMatch(x, @"^(CREATE\s+TABLE|ALTER\s+TABLE)\b", RegexOptions.IgnoreCase)).ToList();
+        var make = st.Where(x => Regex.IsMatch(x, @"^CREATE", RegexOptions.IgnoreCase)).ToList();
+        Func<string, string> name = x => Regex.Match(x, @"^CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?[`""]?(\w+)", RegexOptions.IgnoreCase).Groups[1].Value.ToLowerInvariant();
+        var all = new HashSet<string>(make.Select(name)); var done = new HashSet<string>(); var res = new List<string>();
+        while (make.Count > 0)
+        {
+            var next = make.FirstOrDefault(x => Regex.Matches(x, @"REFERENCES\s+[`""]?(\w+)", RegexOptions.IgnoreCase).Cast<Match>().Select(m => m.Groups[1].Value.ToLowerInvariant())
+                .All(p => p == name(x) || done.Contains(p) || !all.Contains(p))) ?? make[0];
+            make.Remove(next); done.Add(name(next)); res.Add(next);
+        }
+        res.AddRange(st.Where(x => Regex.IsMatch(x, @"^ALTER", RegexOptions.IgnoreCase)));
+        var sql = string.Join("\n\n", res.Select(x => x + ";"));
+        // table names that are reserved words, such as Order, need backticks
+        return Regex.Replace(sql, @"(\b(?:CREATE\s+TABLE(?:\s+IF\s+NOT\s+EXISTS)?|ALTER\s+TABLE|REFERENCES)\s+)(Order|Group|Table|Key|Index|Condition|Rank|Range|Rows|Select|Check|Column|Grant|Schema|Use|Usage|Match|Release|Return|Leave|Load|Call|Case|Change|Option|References|Trigger)(?=\s*\(|\s)", "$1`$2`", RegexOptions.IgnoreCase);
+    }
+
+    List<string> DesignLint(string q)
+    {
+        var bad = new List<string>();
+        var names = new HashSet<string>(Db.Tables.Select(t => t.Name).Concat(Db.Tables.SelectMany(t => t.Cols).Select(c => c.Name)), StringComparer.OrdinalIgnoreCase);
+        foreach (var w in Regex.Matches(q, @"\b[A-Za-z]+(?:_[A-Za-z]+)+\b").Cast<Match>().Select(m => m.Value).Distinct(StringComparer.OrdinalIgnoreCase))
+            if (!names.Contains(w)) bad.Add(w + " from the scenario is missing");
+        if (Regex.IsMatch(q, @"\bat most one\b", RegexOptions.IgnoreCase) && !Db.Tables.Any(t => t.Cols.Any(c => c.Uni && c.Ref != null) || (t.Cols.Count(c => c.Pk) == 1 && t.Cols.Any(c => c.Pk && c.Ref != null))))
+            bad.Add("the 'at most one' link needs UNIQUE on its foreign key column");
+        foreach (var t in Db.Tables)
+        {
+            foreach (var c in t.Cols.Where(c => Regex.IsMatch(c.Name, "isbn|phone|mobile", RegexOptions.IgnoreCase) && Regex.IsMatch(c.Type, "INT", RegexOptions.IgnoreCase))) bad.Add(c.Name + " in " + t.Name + " must be VARCHAR(20), not INT");
+            var pk = t.Cols.Where(c => c.Pk).ToList();
+            if (pk.Count == 0) bad.Add("table " + t.Name + " has no PRIMARY KEY");
+            foreach (var c in t.Cols.Where(c => c.Ref == null && c.RefGuess != null)) bad.Add("in " + t.Name + " declare FOREIGN KEY (" + c.Name + ") REFERENCES " + c.RefGuess.Replace(".", "(") + ")");
+            if (pk.Count >= 2 && pk.All(c => c.Ref != null))
+            {
+                var d = t.Cols.FirstOrDefault(c => !c.Pk && c.Type.StartsWith("DATE"));
+                if (d != null) bad.Add("the PRIMARY KEY of " + t.Name + " must also include " + d.Name + ", or the same pair could be stored only once");
+            }
+        }
+        if (Db.Tables.Count > 1) foreach (var t in Db.Tables)
+            if (!t.Cols.Any(c => c.Ref != null) && !Db.Tables.Any(o => o.Cols.Any(c => c.Ref != null && c.Ref.StartsWith(t.Name + ".", StringComparison.OrdinalIgnoreCase)))) bad.Add("table " + t.Name + " is not linked: the table that belongs to it (what it has, offers or places) needs its primary key as a FOREIGN KEY");
+        return bad.Distinct().Take(8).ToList();
+    }
+
+    string Relations(string sql)
+    {
+        var shown = Regex.Matches(sql, @"CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?[`""]?(\w+)", RegexOptions.IgnoreCase).Cast<Match>().Select(m => m.Groups[1].Value).GroupBy(x => x.ToLowerInvariant()).ToDictionary(g => g.Key, g => g.First());
+        Func<string, string> N = x => shown.ContainsKey(x.ToLowerInvariant()) ? shown[x.ToLowerInvariant()] : x;   // keep the capitals of the script
+        var sb = new StringBuilder();
+        foreach (var t in Db.Tables)
+        {
+            var fks = t.Cols.Where(c => c.Ref != null).ToList(); bool single = t.Cols.Count(c => c.Pk) == 1;
+            foreach (var c in fks) sb.Append(N(c.Ref.Split('.')[0]) + ((c.Pk && single) || c.Uni ? "  1 : 1  " : "  1 : many  ") + N(t.Name) + "   (" + N(t.Name) + "." + c.Name + " -> " + N(c.Ref.Split('.')[0]) + "." + c.Ref.Split('.')[1] + ")\n");
+            var parents = fks.Where(c => c.Pk).Select(c => c.Ref.Split('.')[0]).Distinct().ToList();
+            if (parents.Count == 2) sb.Append(N(parents[0]) + "  many : many  " + N(parents[1]) + "   (through " + N(t.Name) + ")\n");
+        }
+        return sb.Length == 0 ? "No relationships.\n" : sb.ToString();
+    }
+
+    public static string DesignFile { get { return Path.Combine(Paths.Work, "design.sql"); } }
+
+    public Answer Design(string scenario, Action<string> status, Action<string> stream)
+    {
+        var sw = Stopwatch.StartNew(); var a = new Answer { Question = scenario };
+        Llm.Cancel = false;
+        if (scenario.Length > 6000) throw new Exception("The scenario is too long. Paste only the design part (up to about 900 words).");
+        string head = "<|im_start|>system\n" + DesignRules + "<|im_end|>\n<|im_start|>user\n" + DesignExample + "<|im_end|>\n<|im_start|>assistant\n```sql\n" + DesignAnswer + "\n```<|im_end|>\n<|im_start|>user\n" + scenario;
+        string tail = "<|im_end|>\n<|im_start|>assistant\n```sql\n"; string prompt = head + tail;
+        string temp = Path.Combine(Paths.Work, "candidate.sql"); int best = int.MaxValue;
+        for (int i = 0; i < 3; i++)
+        {
+            a.Tries = i + 1;
+            status(i == 0 ? "Designing the tables..." : "Improving the design (try " + (i + 1) + ")...");
+            if (i > 0 && stream != null) stream("\n\n-- correcting:\n");
+            string sql = DesignScript(Llm.Complete(prompt, 1200, i == 2 ? 0.4 : 0, new[] { "```", "<|im_end|>" }, stream));
+            string err = ""; List<string> lint = new List<string>(); bool made = false;
+            if (sql == "") err = "no CREATE TABLE statement was written";
+            else
+            {
+                status("Creating the tables in the built-in database...");
+                File.WriteAllText(temp, "SET FOREIGN_KEY_CHECKS=1;\n" + sql, new UTF8Encoding(false));   // strict: parents must exist first
+                try { Open(temp); made = true; err = ErrText(Regex.Match(Db.LoadWarnings, @"ERROR[\s\S]*").Value); lint = DesignLint(scenario); }
+                catch (OperationCanceledException) { throw; }
+                catch (Exception x) { err = ErrText(x.Message); }
+            }
+            int score = (made ? 0 : 1000) + (err != "" ? 100 : 0) + lint.Count;
+            if (sql != "" && score < best) { best = score; a.Sql = sql; a.Error = err; a.Ok = made && err == ""; a.Notes = lint; }
+            if (score == 0) break;
+            prompt = head + "\n\nA first attempt was:\n" + sql + "\n\nProblems to fix:\n" + (err != "" ? "- MariaDB said: " + err + "\n" : "") + string.Concat(lint.Select(l => "- " + l + "\n")) + "Write the full corrected design." + tail;
+        }
+        if (best < 1000)
+        {
+            File.WriteAllText(DesignFile, "SET FOREIGN_KEY_CHECKS=1;\n" + a.Sql, new UTF8Encoding(false));
+            Open(DesignFile); a.Output = Relations(a.Sql);
+        }
+        a.Seconds = sw.Elapsed.TotalSeconds;
+        return a;
+    }
+
     public void Stop() { Llm.Stop(); Db.Stop(); }
 }
 
@@ -640,7 +769,7 @@ class MainForm : Form
 {
     readonly Assistant ai = new Assistant();
     readonly RichTextBox outBox = new RichTextBox(); readonly TextBox ask = new TextBox(); readonly TreeView tree = new TreeView();
-    readonly Button open = new Button(), send = new Button(), reset = new Button(), save = new Button(), copy = new Button();
+    readonly Button open = new Button(), send = new Button(), reset = new Button(), save = new Button(), copy = new Button(), design = new Button();
     readonly CheckBox keep = new CheckBox(); readonly Label status = new Label();
     bool ready, busy; string dbFile; string lastSql = "";
     readonly StringBuilder sqlLog = new StringBuilder();
@@ -654,11 +783,11 @@ class MainForm : Form
         DragEnter += (s, e) => { if (e.Data.GetDataPresent(DataFormats.FileDrop)) e.Effect = DragDropEffects.Copy; };
         DragDrop += (s, e) => { var f = (string[])e.Data.GetData(DataFormats.FileDrop); if (f.Length > 0) LoadDb(f[0]); };
 
-        var top = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 46, Padding = new Padding(6, 6, 6, 0), BackColor = Color.FromArgb(243, 245, 248), WrapContents = false };
-        Btn(open, "Open database (.sql)", 180, true); Btn(reset, "Reset database", 130, false); Btn(copy, "Copy last SQL", 120, false); Btn(save, "Save all answers", 135, false);
+        var top = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 46, Padding = new Padding(6, 6, 6, 4), BackColor = Color.FromArgb(243, 245, 248), WrapContents = true, AutoSize = true };
+        Btn(open, "Open database (.sql)", 180, true); Btn(design, "Design from scenario", 170, true); Btn(reset, "Reset database", 130, false); Btn(copy, "Copy last SQL", 120, false); Btn(save, "Save all answers", 135, false);
         keep.Text = "Keep changes between questions"; keep.AutoSize = true; keep.Margin = new Padding(12, 8, 0, 0);
         keep.CheckedChanged += (s, e) => ai.KeepChanges = keep.Checked;
-        top.Controls.AddRange(new Control[] { open, reset, copy, save, keep });
+        top.Controls.AddRange(new Control[] { open, design, reset, copy, save, keep });
 
         var bottom = new Panel { Dock = DockStyle.Bottom, Height = 136, Padding = new Padding(8) };
         ask.Multiline = true; ask.Dock = DockStyle.Fill; ask.ScrollBars = ScrollBars.Vertical; ask.AcceptsReturn = true; ask.MaxLength = 100000;
@@ -675,13 +804,14 @@ class MainForm : Form
 
         open.Click += (s, e) => { using (var d = new OpenFileDialog { Filter = "SQL files|*.sql;*.txt|All files|*.*" }) if (d.ShowDialog(this) == DialogResult.OK) LoadDb(d.FileName); };
         send.Click += (s, e) => { if (busy) { ai.Llm.Cancel = true; SetStatus("Stopping..."); } else Go(); };
-        reset.Click += (s, e) => Bg("Resetting the database...", () => { ai.ResetDb(); UI(FillTree); });
+        design.Click += (s, e) => GoDesign();
+        reset.Click += (s, e) => { if (dbFile == null) { SetStatus("There is no database to reset yet."); return; } Bg("Resetting the database...", () => { ai.ResetDb(); UI(FillTree); }); };
         copy.Click += (s, e) => { if (lastSql != "") { try { Clipboard.SetText(lastSql); SetStatus("SQL copied."); } catch { } } };
         save.Click += (s, e) => { using (var d = new SaveFileDialog { Filter = "SQL file|*.sql", FileName = "answers.sql" }) if (d.ShowDialog(this) == DialogResult.OK) { File.WriteAllText(d.FileName, sqlLog.ToString(), new UTF8Encoding(true)); SetStatus("Saved."); } };
         ask.KeyDown += (s, e) => { if (e.KeyCode == Keys.Enter && e.Control) { e.SuppressKeyPress = true; if (!busy) Go(); } };
         FormClosing += (s, e) => { ai.Llm.Cancel = true; Hide(); ai.Stop(); };
 
-        Write("Starting. Open a database file, then type or paste questions (one, or a numbered list) and press Ask or Ctrl+Enter.\n", Color.Gray, false);
+        Write("Starting. Open a database file, then type or paste questions (one, or a numbered list) and press Ask or Ctrl+Enter.\nNo database file? Paste a scenario and press Design from scenario.\n", Color.Gray, false);
         Shown += (s, e) => Bg("Starting the database and the model (slow pendrives need a minute)...", () =>
         {
             Exception err = null;
@@ -716,11 +846,11 @@ class MainForm : Form
             try { work(); }
             catch (OperationCanceledException) { end = "Stopped."; }
             catch (Exception x) { end = "Problem: " + x.Message.Split('\n')[0]; Write("\n" + x.Message + "\n", Color.Firebrick, false); }
-            busy = false; UI(() => { Toggle(); if (ready && dbFile == null && end == "Ready.") end = "Ready. Open a .sql database file."; status.Text = end; });
+            busy = false; UI(() => { Toggle(); if (ready && dbFile == null && end == "Ready.") end = "Ready. Open a .sql database file, or paste a scenario and press Design from scenario."; status.Text = end; });
         });
         t.IsBackground = true; t.Start();
     }
-    void Toggle() { open.Enabled = reset.Enabled = keep.Enabled = !busy; send.Text = busy && ready ? "Stop" : "Ask"; send.Enabled = ready; }
+    void Toggle() { open.Enabled = design.Enabled = reset.Enabled = keep.Enabled = !busy; send.Text = busy && ready ? "Stop" : "Ask"; send.Enabled = ready; }
 
     void LoadDb(string f)
     {
@@ -741,9 +871,47 @@ class MainForm : Form
         foreach (var t in ai.Db.Tables) { var n = tree.Nodes.Add(t.Name + (t.IsView ? " (view)" : "")); foreach (var c in t.Cols) n.Nodes.Add(c.Name + "  " + c.Type.ToLower() + (c.Pk ? "  PK" : "") + (c.Ref != null ? "  > " + c.Ref : "")); }
         tree.EndUpdate();
     }
+    void GoDesign()
+    {
+        if (!ready) { SetStatus("Still starting, please wait."); return; }
+        string text = ask.Text.Replace("\r", "").Trim();
+        if (text.Length < 40) { SetStatus("Paste the scenario into the box below first."); ask.Focus(); return; }
+        if (busy) return;
+        ask.Clear(); string before = dbFile;
+        Bg("Designing the database...", () =>
+        {
+            Write("\n" + text + "\n", Accent, false);
+            int start = 0; var gate = new ManualResetEvent(false);
+            UI(() => { start = outBox.TextLength; gate.Set(); }); gate.WaitOne(2000);
+            Answer a = null; string keepOld = null;
+            if (before != null) { keepOld = Path.Combine(Paths.Work, "before.sql"); File.Copy(before, keepOld, true); }
+            try { a = ai.Design(text, SetStatus, s => Write(s, Color.Gray, true)); }
+            finally
+            {   // stopped or failed: bring the previous database back
+                if (a == null || a.Output == "")
+                {
+                    if (keepOld != null) { if (before == Assistant.DesignFile) File.Copy(keepOld, before, true); ai.Open(before); }
+                    else { ai.Db.Tables.Clear(); ai.Db.Db = ""; }
+                    UI(FillTree);
+                }
+            }
+            UI(() => { outBox.Select(start, outBox.TextLength - start); outBox.ReadOnly = false; outBox.SelectedText = ""; outBox.ReadOnly = true; });
+            Write(a.Sql + "\n", Ink, true);
+            if (a.Sql != "") { UI(() => lastSql = a.Sql); sqlLog.AppendLine("/* " + text.Replace("*/", "* /").Replace("\n", "\r\n") + " */\r\n" + a.Sql.Replace("\n", "\r\n") + "\r\n"); }
+            if (a.Ok) Write("\nAll tables were created without errors (" + a.Seconds.ToString("0") + " s).\n", Color.SeaGreen, false);
+            else Write("\nProblem in this design: " + a.Error + "\n", Color.Firebrick, false);
+            foreach (var n in a.Notes) Write("Check this design: " + n + ".\n", Color.DarkOrange, false);
+            if (a.Output == "") return;
+            dbFile = Assistant.DesignFile; UI(FillTree);
+            Write("\nRelationships\n" + a.Output, Color.FromArgb(70, 78, 88), true);
+            Write("This is now the open database" + (before != null ? " (it replaced the previous one)" : "") + ". The tables are empty; you can ask questions about them.\n", Accent, false);
+            SetStatus("Reading the schema into the model (once per database)..."); ai.Warm();
+        });
+    }
     void Go()
     {
-        if (dbFile == null) { SetStatus("Open a database file first."); return; }
+        if (Assistant.IsDesign(ask.Text)) { GoDesign(); return; }
+        if (dbFile == null) { SetStatus("Open a database file first, or press Design from scenario."); return; }
         var qs = Assistant.Split(ask.Text); if (qs.Count == 0) return;
         ask.Clear();
         Bg("Thinking...", () =>
@@ -795,9 +963,24 @@ static class Program
         try { foreach (var d in Directory.GetDirectories(Path.GetTempPath(), "TextToSQL_*")) { int id; if (int.TryParse(Path.GetFileName(d).Substring(10), out id) && id != Process.GetCurrentProcess().Id) { bool alive = true; try { Process.GetProcessById(id); } catch (ArgumentException) { alive = false; } if (!alive) Directory.Delete(d, true); } } } catch { }
         Directory.CreateDirectory(Paths.Work);
         if (args.Length >= 4 && args[0] == "--cli") return Cli(args);
+        if (args.Length >= 3 && args[0] == "--design") return CliDesign(args);
         Application.EnableVisualStyles(); Application.SetCompatibleTextRenderingDefault(false);
         Application.Run(new MainForm(args.Length > 0 && File.Exists(args[0]) ? args[0] : null));
         return 0;
+    }
+    // TextToSQL.exe --design scenario.txt result.txt
+    static int CliDesign(string[] a)
+    {
+        var ai = new Assistant();
+        try
+        {
+            ai.Db.Start(); ai.Llm.Start();
+            var r = ai.Design(File.ReadAllText(a[1]), s => { }, null);
+            File.WriteAllText(a[2], r.Sql + "\n\n== ok=" + r.Ok + " tries=" + r.Tries + " seconds=" + r.Seconds.ToString("0.0") + " error=" + r.Error + "\n== notes: " + string.Join(" | ", r.Notes) + "\n" + r.Output, new UTF8Encoding(false));
+            return 0;
+        }
+        catch (Exception x) { File.WriteAllText(a[2], x.ToString()); return 1; }
+        finally { ai.Stop(); }
     }
     // TextToSQL.exe --cli database.sql questions.txt answers.json
     static int Cli(string[] a)

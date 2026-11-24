@@ -16,6 +16,9 @@ the database, so your file is never changed.
 ## How to use
 
 Open `TextToSQL.exe`, click **Open database (.sql)**, type a question or paste a numbered list, and press **Ask**.
+No database file? Paste a scenario and press **Design from scenario**: the app writes the `CREATE TABLE` statements,
+tests them, and lists the relationships. You can then ask questions about the new tables.
+
 Answers can be wrong even when the SQL runs, so check them.
 
 ## Fine-tuning experiment

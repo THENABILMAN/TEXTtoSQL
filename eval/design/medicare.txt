@@ -1,0 +1,9 @@
+Database Design (15 Marks)
+
+Scenario: "MediCare" is a hospital shift management system. They need a relational database to track hospital wards, beds, departments, and nurses.
+
+Wards & Beds: The hospital operates several wards. For each Ward, they store a Ward_ID and Ward_Name. They track registered Beds containing a Bed_ID, Room_Number, and the Ward_ID where it is located. (Each bed belongs to exactly one ward).
+
+Departments & Nurses: MediCare has designated medical departments. They have a Department table with a Dept_ID and Dept_Name. They track their nursing staff in a Nurse table containing a Nurse_ID, Name, Phone_Number, and the Dept_ID they are stationed at.
+
+Shift Assignments (Junction): A single Bed can be attended by many different Nurses over time, and a single Nurse can be assigned to multiple Beds during a shift. To track this, MediCare needs a Shift_Log table that records which nurse attended which bed, the exact Shift_Date, and the Shift_Type (e.g., 'Morning', 'Night').
