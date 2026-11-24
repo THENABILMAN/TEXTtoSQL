@@ -12,6 +12,16 @@ SQL, **executes it on a real database**, checks it, tries to fix its own mistake
 
 No `.sql` file? Paste a scenario and it **designs the database for you**.
 
+## 📸 See it in action
+
+**Ask in English: the app writes the SQL, runs it and shows the result**
+
+![A question in English answered with SQL and a result table](docs/ask.png)
+
+**Design from scenario: text in, tested tables and relationships out**
+
+![Tables and relationships designed from a hospital scenario](docs/design.png)
+
 ## 🎯 The problem
 
 AI can write SQL, but the usual tools need an internet connection, an account or powerful hardware. Many university lab
