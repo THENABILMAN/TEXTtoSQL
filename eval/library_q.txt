@@ -1,0 +1,12 @@
+1. List the title and price of all books priced between 300 and 600, cheapest first.
+2. Show each genre with the number of books (aliased as Book_Count) and average price (aliased as Avg_Price). Keep only genres with at least 2 books.
+3. Display the member name and the title of each book that has not been returned yet.
+4. Find authors who have no books in the library. Show AuthorName.
+5. Show the most expensive book: title and price.
+6. Using a LEFT JOIN, show every member's Name and how many loans they made (aliased as Total_Loans).
+7. Show the titles of books borrowed by 'Student' type members.
+8. Reduce the price of all 'Fiction' books by 50.
+9. Use UNION to list all author countries and all member cities in one column named Place.
+10. Create a table Fine with Fine_ID as auto increment primary key, LoanID as a foreign key to Loan and Amount DECIMAL(8,2) not null.
+11. Show the names of members who borrowed more than one book.
+12. Create a unique index named idx_title on the Title column of Book.

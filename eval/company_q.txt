@@ -1,0 +1,16 @@
+1. Retrieve the first name, last name and address of all employees who work for the 'Research' department.
+2. For every project located in 'Stafford', list the project number, the controlling department number, and the department manager's last name, address and birth date.
+3. List the first and last name of each employee and the last name of his or her supervisor (aliased as Boss). Include employees without a supervisor.
+4. Find the sum of the salaries, the maximum salary, the minimum salary and the average salary of employees of the 'Research' department.
+5. For each project, retrieve the project number, the project name and the number of employees who work on that project.
+6. For each project on which more than two employees work, retrieve the project name and the number of employees.
+7. Retrieve the first and last names of employees who have no dependents.
+8. List the first and last names of managers who have at least one dependent.
+9. Retrieve all employees whose address contains 'Houston'. Show first name and last name only.
+10. Show the department name and the total hours worked on projects controlled by that department.
+11. Find the first name and salary of employees who earn more than every employee in department 4.
+12. Give all employees working in the Research department a 10 percent raise.
+13. Create a view named Dept_Summary that shows each department name, number of employees and average salary.
+14. Retrieve the SSNs of employees who work on project number 1 but not on project number 2, using EXCEPT.
+15. Show last name, salary and a column Band that is 'Low' when salary is below 30000, 'Mid' when it is from 30000 to 40000 and 'High' otherwise.
+16. Delete all dependents of the employee with SSN 123456789.

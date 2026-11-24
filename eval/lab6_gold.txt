@@ -1,0 +1,50 @@
+### 0
+SELECT First_Name,Last_Name,Course_Name FROM employee e JOIN training_enrollment t ON e.Employee_ID=t.Employee_ID JOIN training_course c ON c.Course_ID=t.Course_ID WHERE t.Status='Completed' AND Score>85
+;
+### 1
+SELECT Customer_Name,SUM(Total_Amount) t FROM customer c JOIN sales_order o ON c.Customer_ID=o.Customer_ID GROUP BY c.Customer_ID,Customer_Name HAVING t>80000 ORDER BY t DESC -- ORDERED
+;
+### 2
+SELECT Dept_Name,First_Name FROM department d LEFT JOIN employee e ON d.Manager_ID=e.Employee_ID
+;
+### 3
+SELECT First_Name,Dept_ID,Salary_Amount FROM employee e WHERE Salary_Amount>(SELECT AVG(Salary_Amount) FROM employee x WHERE x.Dept_ID=e.Dept_ID)
+;
+### 4
+SELECT First_Name,Email_Address,Hire_Date FROM employee WHERE YEAR(Hire_Date)=2024 AND Email_Address LIKE '%gmail%'
+;
+### 5
+SELECT Payment_Method,COUNT(*),AVG(Total_Amount) FROM sales_order WHERE Order_Status='Delivered' GROUP BY Payment_Method
+;
+### 6
+SELECT First_Name,Salary_Amount,Grade_Label FROM employee JOIN salary_grade ON Salary_Amount BETWEEN Min_Salary AND Max_Salary
+;
+### 7
+SELECT Project_Name,SUM(Hours_Worked) h FROM project p JOIN project_assignment a ON a.Project_ID=p.Project_ID GROUP BY p.Project_ID,Project_Name ORDER BY h DESC LIMIT 3
+;
+### 8
+SELECT First_Name,Dept_Name FROM employee e LEFT JOIN department d ON e.Dept_ID=d.Dept_ID UNION SELECT First_Name,Dept_Name FROM employee e RIGHT JOIN department d ON e.Dept_ID=d.Dept_ID
+;
+### 9
+SELECT Dept_Name FROM department d WHERE NOT EXISTS(SELECT 1 FROM project p WHERE p.Dept_ID=d.Dept_ID AND Status='Active')
+;
+### 10
+DELETE FROM training_enrollment WHERE Score<60
+;
+-- PROBE
+SELECT * FROM training_enrollment;
+### 11
+DELIMITER $$
+CREATE TRIGGER t BEFORE DELETE ON department FOR EACH ROW BEGIN IF EXISTS(SELECT 1 FROM employee WHERE Dept_ID=OLD.Dept_ID) THEN SIGNAL SQLSTATE '45000'; END IF; END $$
+DELIMITER ;
+
+-- PROBE
+DELETE IGNORE FROM department WHERE Dept_ID=999; DELETE FROM department WHERE Dept_ID=10; SELECT COUNT(*) FROM department;
+### 12
+CREATE FUNCTION GetAnnualSalary(i INT) RETURNS DECIMAL(12,2) DETERMINISTIC RETURN (SELECT Salary_Amount*12 FROM employee WHERE Employee_ID=i)
+;
+-- PROBE
+SELECT GetAnnualSalary(102);
+### 13
+SELECT s.First_Name,COUNT(*) FROM employee e JOIN employee s ON e.Supervisor_ID=s.Employee_ID GROUP BY s.Employee_ID,s.First_Name HAVING COUNT(*)>=3
+;

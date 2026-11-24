@@ -1,0 +1,601 @@
+// Worked examples taken from CSE311L Lab Manuals 01-06 and CSE 331L Weeks 01-08.
+// Format:  Q: question   /  K: extra search keywords  /  then SQL lines, blank line ends it.
+// You can add your own examples here.
+
+Q: Create a table Project whose Dept_ID is a foreign key to Department
+K: create table primary key foreign key references not null data type
+CREATE TABLE Project (
+  Project_ID INT PRIMARY KEY,
+  Project_Name VARCHAR(100) NOT NULL,
+  Budget_Amount DECIMAL(12,2),
+  Dept_ID INT,
+  FOREIGN KEY (Dept_ID) REFERENCES Department(Dept_ID)
+);
+
+Q: Create a table with AUTO_INCREMENT, UNIQUE, DEFAULT and CHECK constraints
+K: create table auto_increment unique default check constraint between
+CREATE TABLE student_demo (
+  student_id INT AUTO_INCREMENT,
+  roll_no VARCHAR(10) NOT NULL UNIQUE,
+  full_name VARCHAR(50) NOT NULL,
+  gender CHAR(1) DEFAULT 'M',
+  cgpa DECIMAL(3,2) CHECK (cgpa BETWEEN 0 AND 4),
+  PRIMARY KEY (student_id)
+);
+
+Q: Create a WORKS_ON table with a composite primary key and two foreign keys
+K: create table composite key many to many junction cascade
+CREATE TABLE WORKS_ON (
+  Essn CHAR(9) NOT NULL,
+  Pno INT NOT NULL,
+  Hours DECIMAL(3,1) NOT NULL DEFAULT 0.0,
+  PRIMARY KEY (Essn, Pno),
+  FOREIGN KEY (Essn) REFERENCES EMPLOYEE(Ssn) ON DELETE CASCADE,
+  FOREIGN KEY (Pno) REFERENCES PROJECT(Pnumber)
+);
+
+Q: Add a new column Gender of type VARCHAR(10) to the Employee table
+K: alter table add column modify structure new column data type
+ALTER TABLE Employee
+ADD Gender VARCHAR(10);
+
+Q: Remove the Phone_Number column from the Employee table
+K: alter table drop column delete column
+ALTER TABLE Employee
+DROP COLUMN Phone_Number;
+
+Q: Change the Address column of EMPLOYEE to VARCHAR(50)
+K: alter table modify column change data type size increase length
+ALTER TABLE EMPLOYEE
+MODIFY COLUMN Address VARCHAR(50);
+
+Q: Rename the column Lname of EMPLOYEE to Last_name
+K: alter table rename column change name
+ALTER TABLE EMPLOYEE
+RENAME COLUMN Lname TO Last_name;
+
+Q: Rename the table EMPLOYEE to EMP
+K: alter table rename table
+ALTER TABLE EMPLOYEE RENAME TO EMP;
+
+Q: Add a foreign key from EMPLOYEE.Dno to DEPARTMENT.Dnumber that sets null on delete
+K: alter table add constraint foreign key on delete set null cascade
+ALTER TABLE EMPLOYEE
+ADD CONSTRAINT fk_employee_department
+FOREIGN KEY (Dno) REFERENCES DEPARTMENT(Dnumber) ON DELETE SET NULL;
+
+Q: Drop the foreign key fk_employee_department from EMPLOYEE
+K: alter table drop constraint remove foreign key
+ALTER TABLE EMPLOYEE DROP FOREIGN KEY fk_employee_department;
+
+Q: Add a check that Salary is at least 10000 and set a default for Status
+K: alter table add check constraint default
+ALTER TABLE EMPLOYEE ADD CONSTRAINT chk_salary CHECK (Salary >= 10000);
+ALTER TABLE PROJECT ALTER COLUMN Status SET DEFAULT 'Active';
+
+Q: Insert three departments
+K: insert into values add new rows record
+INSERT INTO Department (Dept_ID, Dept_Name, Location) VALUES
+(10, 'Engineering', 'Building A'),
+(20, 'Human Resources', 'Building B'),
+(30, 'Marketing', 'Building C');
+
+Q: Delete the employee whose first name is David
+K: delete from remove row record
+DELETE FROM Employee
+WHERE First_Name = 'David';
+
+Q: Remove all rows from test_delete but keep the table, then remove the table
+K: truncate empty table drop table
+TRUNCATE TABLE test_delete;
+DROP TABLE IF EXISTS test_delete;
+
+Q: Set supervisor 101 for employees 102 and 103
+K: update set where in change value
+UPDATE Employee
+SET Supervisor_ID = 101
+WHERE Employee_ID IN (102, 103);
+
+Q: Increase the salary by 10% for employees of department 20 whose salary is not null
+K: update increase raise percent multiply add current value not null
+UPDATE Employee
+SET Salary_Amount = Salary_Amount * 1.10
+WHERE Dept_ID = 20 AND Salary_Amount IS NOT NULL;
+
+Q: Give a 10% raise to all employees in the Engineering department
+K: update subquery department name
+UPDATE employee
+SET Salary_Amount = Salary_Amount * 1.10
+WHERE Dept_ID = (SELECT Dept_ID FROM department WHERE Dept_Name = 'Engineering');
+
+Q: Give a 5% raise to all employees whose salary is below the company average
+K: update subquery same table error 1093 derived table average
+UPDATE employee
+SET Salary_Amount = Salary_Amount * 1.05
+WHERE Salary_Amount < (
+  SELECT avg_sal FROM (SELECT AVG(Salary_Amount) AS avg_sal FROM employee) AS temp
+);
+
+Q: Delete performance reviews of employees who have no department
+K: delete subquery in is null
+DELETE FROM performance_review
+WHERE Employee_ID IN (SELECT Employee_ID FROM employee WHERE Dept_ID IS NULL);
+
+Q: Show the project named Server Migration
+K: select all details exact match where equal
+SELECT * FROM Project
+WHERE Project_Name = 'Server Migration';
+
+Q: Find projects in Dept_ID 20 with a budget less than 50,000
+K: select where and or comparison less greater number comma
+SELECT * FROM Project
+WHERE Dept_ID = 20 AND Budget_Amount < 50000;
+
+Q: Show each full name with monthly salary and annual salary
+K: arithmetic calculation alias as computed column multiply concat full name
+SELECT CONCAT(First_Name, ' ', Last_Name) AS Full_Name,
+       Salary_Amount AS Monthly_Salary,
+       Salary_Amount * 12 AS Annual_Salary
+FROM Employee;
+
+Q: Find employees whose first name starts with S and whose email contains yahoo
+K: like pattern wildcard starts ends with contains second letter
+SELECT * FROM Employee
+WHERE First_Name LIKE 'S%' AND Email_Address LIKE '%yahoo%';
+
+Q: Find employees earning between 20,000 and 40,000 in department 10 or 30, highest salary first
+K: between inclusive range in list and sort order by descending
+SELECT First_Name, Salary_Amount, Dept_ID
+FROM Employee
+WHERE Salary_Amount BETWEEN 20000 AND 40000
+  AND Dept_ID IN (10, 30)
+ORDER BY Salary_Amount DESC;
+
+Q: Show the different job roles
+K: distinct unique remove duplicates
+SELECT DISTINCT Job_Role
+FROM Employee;
+
+Q: Find employees hired in 2023 who have no supervisor
+K: date year is null started in the year month null missing ongoing not finished
+SELECT First_Name, Hire_Date
+FROM Employee
+WHERE YEAR(Hire_Date) = 2023
+  AND Supervisor_ID IS NULL
+ORDER BY Hire_Date ASC;
+
+Q: Show the second page of 5 employees by salary
+K: limit offset top first rows pagination
+SELECT First_Name, Salary_Amount
+FROM Employee
+ORDER BY Salary_Amount DESC
+LIMIT 5 OFFSET 5;
+
+Q: Find the second highest salary
+K: nth highest third highest distinct limit offset
+SELECT DISTINCT Salary_Amount
+FROM Employee
+ORDER BY Salary_Amount DESC
+LIMIT 1 OFFSET 1;
+
+Q: Count employees, employees with a supervisor and unique job roles
+K: aggregate count distinct how many total number
+SELECT COUNT(*) AS Total_Employees,
+       COUNT(Supervisor_ID) AS Supervised_Employees,
+       COUNT(DISTINCT Job_Role) AS Unique_Job_Roles
+FROM Employee;
+
+Q: What are the highest, lowest, average and total salary
+K: aggregate min max sum avg minimum maximum across all records
+SELECT MAX(Salary_Amount) AS Highest_Salary,
+       MIN(Salary_Amount) AS Lowest_Salary,
+       ROUND(AVG(Salary_Amount), 2) AS Average_Salary,
+       SUM(Salary_Amount) AS Total_Salary
+FROM Employee;
+
+Q: How many people work in each job role
+K: group by count per each
+SELECT Job_Role, COUNT(*) AS Employee_Count
+FROM Employee
+GROUP BY Job_Role;
+
+Q: Show departments with an average salary of at least 40,000, highest first
+K: group by having average filter groups only include sort descending
+SELECT Dept_ID, AVG(Salary_Amount) AS Dept_Average
+FROM Employee
+GROUP BY Dept_ID
+HAVING AVG(Salary_Amount) >= 40000
+ORDER BY Dept_Average DESC;
+
+Q: Considering only employees hired after 2022, show job roles having more than 2 employees
+K: where group by having count more than before grouping
+SELECT Job_Role, COUNT(*) AS Employee_Count
+FROM Employee
+WHERE Hire_Date > '2022-12-31'
+GROUP BY Job_Role
+HAVING COUNT(*) > 2;
+
+Q: Show the total salary for each job role within each department
+K: group by two multiple columns both combination headcount
+SELECT Dept_ID, Job_Role, SUM(Salary_Amount) AS Total_Salary
+FROM Employee
+GROUP BY Dept_ID, Job_Role
+ORDER BY Dept_ID ASC;
+
+Q: Label each employee Low, Medium or High by salary
+K: case when then else category band classify
+SELECT Fname, Salary,
+       CASE WHEN Salary < 30000 THEN 'Low'
+            WHEN Salary BETWEEN 30000 AND 40000 THEN 'Medium'
+            ELSE 'High' END AS Band
+FROM EMPLOYEE;
+
+Q: Count employees in each salary band
+K: case when group by conditional count sum
+SELECT CASE WHEN Salary < 30000 THEN 'Low' ELSE 'High' END AS Band, COUNT(*) AS Total
+FROM EMPLOYEE
+GROUP BY Band;
+
+Q: Show employee names with their department name for departments in Building A
+K: inner join two tables joining display filter
+SELECT Employee.First_Name, Department.Dept_Name
+FROM Employee
+JOIN Department ON Employee.Dept_ID = Department.Dept_ID
+WHERE Department.Location = 'Building A'
+ORDER BY Department.Dept_Name ASC;
+
+Q: Show employee, the project they work on and the hours
+K: join three tables many to many assignment through
+SELECT e.First_Name, p.Project_Name, pa.Hours_Worked
+FROM employee AS e
+JOIN project_assignment AS pa ON e.Employee_ID = pa.Employee_ID
+JOIN project AS p ON pa.Project_ID = p.Project_ID;
+
+Q: Department name and head count for departments with more than 2 employees, largest first
+K: join group by having order by name count
+SELECT d.Dept_Name, COUNT(*) AS Head_Count
+FROM department AS d
+JOIN employee AS e ON d.Dept_ID = e.Dept_ID
+GROUP BY d.Dept_Name
+HAVING COUNT(*) > 2
+ORDER BY Head_Count DESC;
+
+Q: Show ALL departments and the number of employees in each, including zero
+K: left join group by count including empty even those without
+SELECT d.Dept_Name, COUNT(e.Employee_ID) AS Head_Count
+FROM department AS d
+LEFT JOIN employee AS e ON d.Dept_ID = e.Dept_ID
+GROUP BY d.Dept_Name;
+
+Q: Departments that have no employees
+K: left join is null unmatched without no matching never
+SELECT d.Dept_Name
+FROM department AS d
+LEFT JOIN employee AS e ON d.Dept_ID = e.Dept_ID
+WHERE e.Employee_ID IS NULL;
+
+Q: Show ALL employees, even those without a department, using RIGHT JOIN
+K: right join right side all appear regardless
+SELECT Department.Dept_Name, Employee.First_Name
+FROM Department
+RIGHT JOIN Employee ON Department.Dept_ID = Employee.Dept_ID;
+
+Q: Match every employee with every department
+K: cross join cartesian product all combinations every pair
+SELECT Employee.First_Name, Department.Dept_Name
+FROM Employee
+CROSS JOIN Department;
+
+Q: Show all departments and all employees, matched or not (FULL OUTER JOIN)
+K: full outer join union left right both sides everything
+SELECT d.Dept_Name, e.First_Name
+FROM department AS d LEFT JOIN employee AS e ON d.Dept_ID = e.Dept_ID
+UNION
+SELECT d.Dept_Name, e.First_Name
+FROM department AS d RIGHT JOIN employee AS e ON d.Dept_ID = e.Dept_ID;
+
+Q: List every employee and the name of their supervisor, including those with no supervisor
+K: self join supervisor manager boss same table report to
+SELECT e.First_Name AS Worker_Name, s.First_Name AS Supervisor_Name
+FROM employee AS e
+LEFT JOIN employee AS s ON e.Supervisor_ID = s.Employee_ID;
+
+Q: Employees who earn more than their own supervisor
+K: self join compare salary manager
+SELECT e.First_Name, e.Salary_Amount, s.First_Name AS Supervisor_Name
+FROM employee AS e
+JOIN employee AS s ON e.Supervisor_ID = s.Employee_ID
+WHERE e.Salary_Amount > s.Salary_Amount;
+
+Q: Match each employee to a salary grade
+K: non equi join range between grade min max
+SELECT e.First_Name, e.Salary_Amount, g.Grade_Label
+FROM employee AS e
+JOIN salary_grade AS g ON e.Salary_Amount BETWEEN g.Min_Salary AND g.Max_Salary;
+
+Q: Combined list of the names of department 5 employees and names of high earners
+K: union set operation combined list single column distinct sort alphabetically extract two
+SELECT Fname AS Person FROM EMPLOYEE WHERE Dno = 5
+UNION
+SELECT Fname FROM EMPLOYEE WHERE Salary > 35000
+ORDER BY Person ASC;
+
+Q: Employees that work on a project AND have a dependent, using INTERSECT
+K: intersect set operation both common
+SELECT DISTINCT Essn FROM WORKS_ON
+INTERSECT
+SELECT DISTINCT Essn FROM DEPENDENT;
+
+Q: Employees that work on a project but have no dependent, using EXCEPT
+K: except minus set operation difference but not
+SELECT DISTINCT Essn FROM WORKS_ON
+EXCEPT
+SELECT DISTINCT Essn FROM DEPENDENT;
+
+Q: Find the employee with the highest salary
+K: subquery single row max top earner who
+SELECT First_Name, Last_Name, Salary_Amount
+FROM employee
+WHERE Salary_Amount = (SELECT MAX(Salary_Amount) FROM employee);
+
+Q: Employees who earn more than the average salary
+K: subquery single row avg above company average
+SELECT First_Name, Last_Name, Salary_Amount
+FROM employee
+WHERE Salary_Amount > (SELECT AVG(Salary_Amount) FROM employee)
+ORDER BY Salary_Amount DESC;
+
+Q: Employees in the same department as Steven King
+K: subquery same as colleague
+SELECT First_Name, Last_Name
+FROM employee
+WHERE Dept_ID = (SELECT Dept_ID FROM employee WHERE First_Name = 'Steven' AND Last_Name = 'King');
+
+Q: Departments whose average salary is higher than the overall average
+K: having subquery group average overall
+SELECT Dept_ID, ROUND(AVG(Salary_Amount), 2) AS Dept_Average
+FROM employee
+WHERE Dept_ID IS NOT NULL
+GROUP BY Dept_ID
+HAVING AVG(Salary_Amount) > (SELECT AVG(Salary_Amount) FROM employee);
+
+Q: Employees who work in a department with budget over 300,000
+K: subquery multi row in list
+SELECT First_Name, Last_Name
+FROM employee
+WHERE Dept_ID IN (SELECT Dept_ID FROM department WHERE Budget > 300000);
+
+Q: Employees never assigned to any project using NOT IN
+K: not in subquery never
+SELECT First_Name, Last_Name
+FROM employee
+WHERE Employee_ID NOT IN (SELECT Employee_ID FROM project_assignment);
+
+Q: Employees who earn more than ANY employee of department 40
+K: any multi row comparison at least one
+SELECT First_Name, Salary_Amount
+FROM employee
+WHERE Salary_Amount > ANY (SELECT Salary_Amount FROM employee WHERE Dept_ID = 40);
+
+Q: Employees who earn more than ALL employees of department 40
+K: all multi row comparison every
+SELECT First_Name, Salary_Amount
+FROM employee
+WHERE Salary_Amount > ALL (SELECT Salary_Amount FROM employee WHERE Dept_ID = 40);
+
+Q: Employees whose salary is above their own department's average
+K: correlated subquery own department within each
+SELECT e1.First_Name, e1.Dept_ID, e1.Salary_Amount
+FROM employee AS e1
+WHERE e1.Salary_Amount > (SELECT AVG(e2.Salary_Amount) FROM employee AS e2 WHERE e2.Dept_ID = e1.Dept_ID);
+
+Q: The highest paid employee of each department
+K: correlated subquery max per group each top
+SELECT e1.First_Name, e1.Dept_ID, e1.Salary_Amount
+FROM employee AS e1
+WHERE e1.Salary_Amount = (SELECT MAX(e2.Salary_Amount) FROM employee AS e2 WHERE e2.Dept_ID = e1.Dept_ID);
+
+Q: Show each employee with the average salary of their department
+K: scalar subquery in select computed difference
+SELECT e1.First_Name, e1.Salary_Amount,
+       (SELECT ROUND(AVG(e2.Salary_Amount), 2) FROM employee AS e2 WHERE e2.Dept_ID = e1.Dept_ID) AS Dept_Avg
+FROM employee AS e1;
+
+Q: Top 3 departments by average salary with their names using a derived table
+K: derived table from subquery join limit
+SELECT d.Dept_Name, t.Avg_Salary
+FROM (SELECT Dept_ID, ROUND(AVG(Salary_Amount), 2) AS Avg_Salary FROM employee GROUP BY Dept_ID) AS t
+JOIN department AS d ON t.Dept_ID = d.Dept_ID
+ORDER BY t.Avg_Salary DESC
+LIMIT 3;
+
+Q: Employees who received at least one performance review
+K: exists correlated has
+SELECT e.First_Name, e.Last_Name
+FROM employee AS e
+WHERE EXISTS (SELECT 1 FROM performance_review AS pr WHERE pr.Employee_ID = e.Employee_ID);
+
+Q: Customers who have never placed an order
+K: not exists never zero without no
+SELECT c.Customer_Name
+FROM customer AS c
+WHERE NOT EXISTS (SELECT 1 FROM sales_order AS so WHERE so.Customer_ID = c.Customer_ID);
+
+Q: Employees who work on ALL projects of department 5
+K: division every all double not exists
+SELECT e.Fname
+FROM EMPLOYEE AS e
+WHERE NOT EXISTS (
+  SELECT 1 FROM PROJECT AS p WHERE p.Dnum = 5 AND NOT EXISTS (
+    SELECT 1 FROM WORKS_ON AS w WHERE w.Essn = e.Ssn AND w.Pno = p.Pnumber));
+
+Q: Create a view of employees above their department average
+K: create view virtual or replace
+CREATE OR REPLACE VIEW Above_Dept_Avg AS
+SELECT E1.Fname, E1.Salary, E1.Dno
+FROM EMPLOYEE E1
+WHERE E1.Salary > (SELECT AVG(E2.Salary) FROM EMPLOYEE E2 WHERE E2.Dno = E1.Dno);
+
+Q: Save the result of a query as a snapshot table (materialized view)
+K: materialized view create table as select copy backup
+CREATE TABLE Above_Avg_Snapshot AS
+SELECT Fname, Salary FROM EMPLOYEE WHERE Salary > 30000;
+
+Q: Create an index, a unique index, a composite index and drop one
+K: index unique composite create drop show explain
+CREATE INDEX idx_lname ON EMPLOYEE(Lname);
+CREATE UNIQUE INDEX idx_dname_unique ON DEPARTMENT(Dname);
+CREATE INDEX idx_pno_hours ON WORKS_ON(Pno, Hours);
+DROP INDEX idx_lname ON EMPLOYEE;
+
+Q: Create a procedure that lists employees of a given department
+K: stored procedure in parameter call delimiter
+DELIMITER $$
+CREATE PROCEDURE GetEmployeesByDept(IN p_dept_id INT)
+BEGIN
+  SELECT Employee_ID, First_Name, Salary_Amount
+  FROM employee
+  WHERE Dept_ID = p_dept_id;
+END $$
+DELIMITER ;
+CALL GetEmployeesByDept(10);
+
+Q: Create a procedure that returns headcount and average salary through OUT parameters
+K: stored procedure out parameter select into user variable
+DELIMITER $$
+CREATE PROCEDURE GetDeptStats(IN p_dept_id INT, OUT p_headcount INT, OUT p_avg_salary DECIMAL(10,2))
+BEGIN
+  SELECT COUNT(*), ROUND(AVG(Salary_Amount), 2)
+  INTO p_headcount, p_avg_salary
+  FROM employee
+  WHERE Dept_ID = p_dept_id;
+END $$
+DELIMITER ;
+CALL GetDeptStats(10, @hc, @avg);
+SELECT @hc, @avg;
+
+Q: Create a procedure that raises an employee's salary by a tier that depends on the current salary
+K: stored procedure if elseif else conditional declare update variable
+DELIMITER $$
+CREATE PROCEDURE ApplySalaryAdjustment(IN p_emp_id INT)
+BEGIN
+  DECLARE v_salary DECIMAL(10,2);
+  SELECT Salary_Amount INTO v_salary FROM employee WHERE Employee_ID = p_emp_id;
+  IF v_salary < 20000 THEN
+    UPDATE employee SET Salary_Amount = v_salary * 1.15 WHERE Employee_ID = p_emp_id;
+  ELSEIF v_salary < 40000 THEN
+    UPDATE employee SET Salary_Amount = v_salary * 1.10 WHERE Employee_ID = p_emp_id;
+  ELSE
+    UPDATE employee SET Salary_Amount = v_salary * 1.05 WHERE Employee_ID = p_emp_id;
+  END IF;
+END $$
+DELIMITER ;
+CALL ApplySalaryAdjustment(118);
+
+Q: Create a function that returns the salary band
+K: function returns deterministic declare return
+DELIMITER $$
+CREATE FUNCTION Salary_Band(p_salary DECIMAL(10,2))
+RETURNS VARCHAR(10)
+DETERMINISTIC
+BEGIN
+  DECLARE v_band VARCHAR(10);
+  IF p_salary < 30000 THEN SET v_band = 'Low';
+  ELSE SET v_band = 'High';
+  END IF;
+  RETURN v_band;
+END $$
+DELIMITER ;
+SELECT First_Name, Salary_Band(Salary_Amount) AS Band FROM employee;
+
+Q: Create a trigger that logs every salary change into salary_audit_log
+K: trigger after update audit log table old new history record change
+CREATE TABLE IF NOT EXISTS salary_audit_log (
+  Log_ID INT AUTO_INCREMENT PRIMARY KEY,
+  Employee_ID INT,
+  Old_Salary DECIMAL(10,2),
+  New_Salary DECIMAL(10,2),
+  Changed_At DATETIME
+);
+DELIMITER $$
+CREATE TRIGGER trg_log_salary_change
+AFTER UPDATE ON employee
+FOR EACH ROW
+BEGIN
+  IF OLD.Salary_Amount <> NEW.Salary_Amount THEN
+    INSERT INTO salary_audit_log (Employee_ID, Old_Salary, New_Salary, Changed_At)
+    VALUES (OLD.Employee_ID, OLD.Salary_Amount, NEW.Salary_Amount, NOW());
+  END IF;
+END $$
+DELIMITER ;
+
+Q: Create a trigger that corrects negative salaries when inserting
+K: trigger before insert validate set new default correct
+DELIMITER $$
+CREATE TRIGGER trg_validate_salary_on_insert
+BEFORE INSERT ON employee
+FOR EACH ROW
+BEGIN
+  IF NEW.Salary_Amount <= 0 THEN
+    SET NEW.Salary_Amount = 15000.00;
+  END IF;
+END $$
+DELIMITER ;
+
+Q: Create a trigger that rejects a salary decrease
+K: trigger before update signal sqlstate prevent block reject error message
+DELIMITER $$
+CREATE TRIGGER trg_no_pay_cut
+BEFORE UPDATE ON employee
+FOR EACH ROW
+BEGIN
+  IF NEW.Salary_Amount < OLD.Salary_Amount THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Salary cannot be decreased';
+  END IF;
+END $$
+DELIMITER ;
+
+Q: Create a trigger that clears the assigned employee of customers when an employee is deleted
+K: trigger after delete before delete archive prevent old
+DELIMITER $$
+CREATE TRIGGER trg_after_employee_delete
+AFTER DELETE ON employee
+FOR EACH ROW
+BEGIN
+  UPDATE customer SET Assigned_Employee_ID = NULL
+  WHERE Assigned_Employee_ID = OLD.Employee_ID;
+END $$
+DELIMITER ;
+
+Q: List, inspect and drop routines and triggers
+K: show procedure status show create drop procedure drop trigger drop function
+SHOW PROCEDURE STATUS WHERE Db = DATABASE();
+SHOW TRIGGERS;
+DROP PROCEDURE IF EXISTS GetTopEarners;
+DROP TRIGGER IF EXISTS trg_log_salary_change;
+
+Q: Create a user, give privileges and take them back
+K: create user identified by grant revoke privilege show grants
+CREATE USER 'ta_cse311'@'localhost' IDENTIFIED BY 'SecurePass123!';
+GRANT SELECT, INSERT ON Employee TO 'ta_cse311'@'localhost';
+REVOKE INSERT ON Employee FROM 'ta_cse311'@'localhost';
+SHOW GRANTS FOR 'ta_cse311'@'localhost';
+
+Q: Grant only some columns, with grant option
+K: grant column level privilege with grant option
+CREATE USER 'student_guest'@'localhost' IDENTIFIED BY 'GuestPass456!';
+GRANT SELECT (First_Name, Last_Name) ON Employee TO 'student_guest'@'localhost' WITH GRANT OPTION;
+
+Q: Create a role, grant privileges to it and assign it
+K: role create role grant role user default
+CREATE ROLE lab_ta;
+GRANT SELECT, UPDATE ON Employee TO lab_ta;
+GRANT lab_ta TO 'ta_cse311'@'localhost';
+
+Q: Employees hired in the last 365 days
+K: date datediff now days interval recent month
+SELECT First_Name, Hire_Date
+FROM employee
+WHERE DATEDIFF(NOW(), Hire_Date) <= 365
+ORDER BY Hire_Date DESC;
+

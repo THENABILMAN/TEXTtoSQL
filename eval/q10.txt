@@ -1,0 +1,32 @@
+1. Write a SQL command to modify the Employee table structure by adding a new column
+named Emergency_Contact with a data type of VARCHAR(20).
+2. Write a SQL command to update the Commission rate by adding 0.05 (e.g., Commission
++ 0.05) for all employees in Department 50 (Dept_ID = 50) whose current Commission
+is not null.
+3. Write a SQL query to display the First_Name, Last_Name, Salary_Amount, and
+Dept_ID of all employees whose salary is between 30,000 BDT and 50,000 BDT
+(inclusive) AND who belong to Department 10, 30, or 50. Sort the output by
+Salary_Amount in descending order.
+4. Write a SQL query to display the Project_Name, Start_Date, End_Date, and Status of
+all projects that started in the year 2022 AND whose End_Date is NULL (currently
+ongoing). Sort the result by Start_Date in ascending order.
+5. Write a SQL query to calculate the minimum salary (aliased as Min_Salary), maximum
+salary (aliased as Max_Salary), and total salary expense (aliased as Total_Payroll) across
+all records in the Employee table.
+6. Write a SQL query to display each Instructor and their average course duration (aliased
+as Avg_Course_Hours) from the Training_Course table. Group the data by Instructor
+and filter to include only those instructors who have an average course duration of at least
+30 hours. Sort the output by Avg_Course_Hours in descending order.
+7. Write a SQL query to display the Dept_ID, Job_Role, and the count of employees (aliased
+as Role_Headcount) from the Employee table. Group the records by both Dept_ID and
+Job_Role, and sort the output by Dept_ID in ascending order.
+8. Write a SQL query joining the Department and Location tables to display the department
+name (Dept_Name), building name (Building_Name), and city (City). Include only
+departments situated in the city of 'Dhaka'. Sort by Dept_Name in ascending order.
+9. Write a SQL query using a RIGHT JOIN between the Project and Department tables
+(with Department on the right side) to display Dept_Name and Project_Name. Ensure
+that all departments appear in the output regardless of whether they have an associated
+project. Sort by Dept_Name in ascending order.
+10. Write a SQL query using the UNION operator to extract a combined list of all distinct
+cities from the Location table and all distinct country names from the Location table into
+a single output column aliased as Geographic_Region. Sort the output alphabetically.

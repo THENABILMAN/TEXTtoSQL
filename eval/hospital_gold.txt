@@ -1,0 +1,68 @@
+### 0
+SELECT name,city FROM patients WHERE city='Dhaka' ORDER BY name -- ORDERED
+;
+### 1
+SELECT specialty,COUNT(*) FROM doctors GROUP BY specialty HAVING COUNT(*)>1
+;
+### 2
+SELECT full_name,COUNT(appointment_id) FROM doctors d LEFT JOIN appointments a ON a.doctor_id=d.doctor_id GROUP BY d.doctor_id,full_name
+;
+### 3
+SELECT name,full_name,appointment_date FROM appointments a JOIN patients p ON a.patient_id=p.patient_id JOIN doctors d ON d.doctor_id=a.doctor_id WHERE status='Completed' ORDER BY appointment_date DESC -- ORDERED
+;
+### 4
+SELECT name FROM patients p WHERE NOT EXISTS(SELECT 1 FROM appointments a WHERE a.patient_id=p.patient_id)
+;
+### 5
+SELECT appointment_id,SUM(quantity*unit_price) FROM prescriptions p JOIN medicines m ON m.medicine_id=p.medicine_id GROUP BY appointment_id
+;
+### 6
+SELECT DISTINCT consultation_fee FROM doctors ORDER BY 1 DESC LIMIT 1 OFFSET 1
+;
+### 7
+SELECT full_name,consultation_fee FROM doctors WHERE consultation_fee>(SELECT AVG(consultation_fee) FROM doctors)
+;
+### 8
+SELECT DISTINCT name FROM patients p JOIN appointments a ON a.patient_id=p.patient_id JOIN prescriptions r ON r.appointment_id=a.appointment_id JOIN medicines m ON m.medicine_id=r.medicine_id WHERE medicine_name='Losartan'
+;
+### 9
+UPDATE medicines SET unit_price=unit_price*1.2 WHERE unit_price<10
+;
+-- PROBE
+SELECT * FROM medicines;
+### 10
+INSERT INTO patients VALUES(7,'Test User','M','2000-01-01','Bogura','B-')
+;
+-- PROBE
+SELECT * FROM patients;
+### 11
+ALTER TABLE patients ADD email VARCHAR(80)
+;
+-- PROBE
+SHOW COLUMNS FROM patients;
+### 12
+ALTER TABLE medicines MODIFY medicine_name VARCHAR(100)
+;
+-- PROBE
+SELECT column_type FROM information_schema.columns WHERE table_schema=DATABASE() AND column_name='medicine_name';
+### 13
+SELECT * FROM patients WHERE city IS NULL
+;
+### 14
+SELECT specialty,full_name,consultation_fee FROM doctors d WHERE consultation_fee=(SELECT MAX(consultation_fee) FROM doctors x WHERE x.specialty=d.specialty)
+;
+### 15
+CREATE TRIGGER trg_stock AFTER INSERT ON prescriptions FOR EACH ROW UPDATE medicines SET stock=stock-NEW.quantity WHERE medicine_id=NEW.medicine_id
+;
+-- PROBE
+INSERT INTO prescriptions VALUES(3,5,50); SELECT medicine_id,stock FROM medicines;
+### 16
+DELIMITER $$
+CREATE PROCEDURE GetPatientsByCity(IN c VARCHAR(30)) BEGIN SELECT * FROM patients WHERE city=c; END $$
+DELIMITER ;
+
+-- PROBE
+CALL GetPatientsByCity('Khulna');
+### 17
+SELECT MONTH(appointment_date),COUNT(*) FROM appointments WHERE YEAR(appointment_date)=2024 GROUP BY 1
+;

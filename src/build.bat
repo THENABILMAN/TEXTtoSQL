@@ -1,0 +1,1 @@
+@"%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\csc.exe" /nologo /optimize+ /target:winexe /platform:x64 /out:"%~dp0..\pendrive\TextToSQL\TextToSQL.exe" /r:System.Web.Extensions.dll /r:System.Management.dll /r:System.Windows.Forms.dll /r:System.Drawing.dll /codepage:65001 "%~dp0TextToSQL.cs"

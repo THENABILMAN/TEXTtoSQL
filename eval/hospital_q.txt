@@ -1,0 +1,18 @@
+1. Show the name and city of patients from Dhaka, sorted by name.
+2. Count the number of doctors in each specialty, showing only specialties that have more than 1 doctor.
+3. List every doctor's name with the number of appointments they have, including doctors with zero appointments.
+4. Show patient name, doctor name and appointment date for all completed appointments, most recent first.
+5. Find patients who have never had an appointment. Show their names.
+6. What is the total cost of medicines prescribed in each appointment? Show appointment_id and the total as Total_Cost.
+7. Show the second highest consultation fee.
+8. List doctors whose consultation fee is higher than the average fee. Show full_name and consultation_fee.
+9. Show the name of patients who were prescribed the medicine 'Losartan'.
+10. Increase the unit price of all medicines that cost less than 10 by 20%.
+11. Insert a new patient with id 7, name 'Test User', gender 'M', birth date 2000-01-01, city 'Bogura' and blood group 'B-'.
+12. Add a column email of type VARCHAR(80) to the patients table.
+13. Change the data type of medicine_name to VARCHAR(100).
+14. Show all details of patients whose city is not recorded.
+15. For each specialty show the doctor with the highest consultation fee (specialty, full_name, consultation_fee).
+16. Create a trigger named trg_stock that reduces the stock of a medicine by the prescribed quantity after a row is inserted into prescriptions.
+17. Create a stored procedure GetPatientsByCity that takes a city as IN parameter and returns the patients of that city.
+18. Display the number of appointments per month in 2024.

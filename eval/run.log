@@ -1,0 +1,59 @@
+
+@@ q10 Write a SQL query to display each Instructor and their average course duration (aliased as True 3 ['use only the table training_course, without any JOIN']  
+SELECT T1.Instructor, AVG(T1.Duration_Hours) AS Avg_Course_Hours
+FROM training_course AS T1
+JOIN training_enrollment AS T2 ON T1.Course_ID = T2.Course_ID
+GROUP BY T1.Instructor
+HAVING AVG(T1.Duration_Hours) >= 30
+ORDER BY Avg_Course_Hours DESC;
+
+@@ lab6 Find departments that have no projects with status 'Active'. Show Dept_Name. | FAIL gold=1 got=0 tries 3 ["the value 'Active' is missing"]  
+SELECT d.Dept_Name
+FROM department d
+LEFT JOIN project p ON d.Dept_ID = p.Dept_ID
+WHERE p.Status IS NULL;
+
+@@ company List the first and last name of each employee and the last name of his or her supervisor (aliased as Boss). Include employees without a supervisor. | FAIL gold=8 got=8 tries 2 []  
+SELECT e.Fname, e.Lname, e.Super_ssn AS Boss
+FROM employee e
+LEFT JOIN employee es ON e.Super_ssn = es.Ssn;
+
+@@ company List the first and last names of managers who have at least one dependent. | FAIL gold=2 got=3 tries 2 ["two drafts gave different results; the other draft was:\nSELECT e.Fname, e.Lname\nFROM department d\nJOIN employee e ON d.Mgr_ssn = e.Ssn\nWHERE e.Sex = 'M' AND EXISTS (\n    SELECT 1\n    FROM dependent d2\n    WHERE d2.Essn = e.Ssn\n)\nGROUP BY e.Fname, e.Lname;"]  
+SELECT e.Fname, e.Lname
+FROM employee e
+JOIN department d ON e.Ssn = d.Mgr_ssn
+WHERE e.Ssn IS NOT NULL;
+
+@@ company Retrieve all employees whose address contains 'Houston'. Show first name and last name only. | FAIL gold=5 got=5 tries 1 []  
+SELECT T1.Fname, T1.Lname FROM employee AS T1 INNER JOIN dept_locations AS T2 ON T1.Dno = T2.Dnumber WHERE T2.Dlocation LIKE '%Houston%';
+
+@@ company Show the department name and the total hours worked on projects controlled by that department. | FAIL gold=3 got=3 tries 2 []  
+SELECT d.Dname, SUM(w.Hours) AS TotalHours
+FROM department d
+JOIN employee e ON d.Dnumber = e.Dno
+JOIN works_on w ON e.Ssn = w.Essn
+JOIN project p ON w.Pno = p.Pnumber
+GROUP BY d.Dname;
+
+@@ company Retrieve the SSNs of employees who work on project number 1 but not on project number 2, using EXCEPT. | FAIL gold=0 got=5 tries 3 ['the question asks for EXCEPT']  
+SELECT DISTINCT e.Ssn
+FROM employee e
+WHERE NOT EXISTS (
+  SELECT 1 FROM project p WHERE p.Pnumber = 2 AND EXISTS (
+    SELECT 1 FROM works_on w WHERE w.Essn = e.Ssn AND w.Pno = p.Pnumber
+  )
+);
+
+@@ library Display the member name and the title of each book that has not been returned yet. | FAIL gold=3 got=4 tries 1 []  
+SELECT m.Name, b.Title
+FROM member m
+LEFT JOIN loan l ON m.MemberID = l.MemberID
+LEFT JOIN book b ON l.BookID = b.BookID
+WHERE l.ReturnDate IS NULL;
+
+@@ library Reduce the price of all 'Fiction' books by 50. | FAIL gold=7 got=7 tries 2 []  
+UPDATE book
+SET Price = Price * 0.50
+WHERE Genre = 'Fiction';
+52 / 60 mean s 6.0
+done

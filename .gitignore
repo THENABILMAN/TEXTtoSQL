@@ -1,0 +1,11 @@
+# too big / third-party binaries
+*.gguf
+*.safetensors
+pendrive/TextToSQL/engine/
+pendrive/TextToSQL/mariadb/
+pendrive/TextToSQL/model/
+# scratch, course PDFs' text, training outputs
+work/
+train/hf/
+train/out/
+__pycache__/

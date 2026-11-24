@@ -1,0 +1,10 @@
+CREATE TABLE doctors (doctor_id INT PRIMARY KEY AUTO_INCREMENT, full_name VARCHAR(60), specialty VARCHAR(30), consultation_fee DECIMAL(8,2), joined_on DATE);
+CREATE TABLE patients (patient_id INT PRIMARY KEY, name VARCHAR(60), gender CHAR(1), birth_date DATE, city VARCHAR(30), blood_group VARCHAR(3));
+CREATE TABLE appointments (appointment_id INT PRIMARY KEY, patient_id INT, doctor_id INT, appointment_date DATE, status VARCHAR(15), FOREIGN KEY (patient_id) REFERENCES patients(patient_id), FOREIGN KEY (doctor_id) REFERENCES doctors(doctor_id));
+CREATE TABLE medicines (medicine_id INT PRIMARY KEY, medicine_name VARCHAR(40), unit_price DECIMAL(8,2), stock INT);
+CREATE TABLE prescriptions (appointment_id INT, medicine_id INT, quantity INT, PRIMARY KEY (appointment_id, medicine_id), FOREIGN KEY (appointment_id) REFERENCES appointments(appointment_id), FOREIGN KEY (medicine_id) REFERENCES medicines(medicine_id));
+INSERT INTO doctors VALUES (1,'Dr. Salma Karim','Cardiology',1500,'2015-03-01'),(2,'Dr. Anis Haque','Neurology',1800,'2018-07-15'),(3,'Dr. Rina Das','Cardiology',1200,'2020-01-10'),(4,'Dr. Tariq Aziz','Orthopedics',1000,'2012-11-30'),(5,'Dr. Mina Roy','Dermatology',900,'2022-05-05');
+INSERT INTO patients VALUES (1,'Rahim Ali','M','1980-02-12','Dhaka','A+'),(2,'Karima Begum','F','1992-08-23','Khulna','O+'),(3,'Jamal Uddin','M','1975-12-01','Dhaka','B+'),(4,'Nadia Islam','F','2001-06-17','Sylhet','O+'),(5,'Sohel Rana','M','1988-09-09',NULL,'AB-'),(6,'Laila Noor','F','1969-04-30','Dhaka','A-');
+INSERT INTO appointments VALUES (1,1,1,'2024-01-10','Completed'),(2,2,1,'2024-02-11','Completed'),(3,3,2,'2024-02-20','Cancelled'),(4,1,3,'2024-03-05','Completed'),(5,4,4,'2024-03-15','Completed'),(6,1,2,'2024-05-02','Scheduled'),(7,2,4,'2024-06-18','Completed'),(8,3,1,'2024-07-07','Completed');
+INSERT INTO medicines VALUES (1,'Napa',2.5,500),(2,'Seclo',6,200),(3,'Losartan',10,0),(4,'Cef-3',45,80),(5,'Vitamin D',12,150);
+INSERT INTO prescriptions VALUES (1,1,10),(1,3,30),(2,2,14),(4,3,30),(5,4,7),(7,1,20),(8,2,10);

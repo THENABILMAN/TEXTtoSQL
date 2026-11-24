@@ -1,0 +1,42 @@
+### 0
+SELECT Title,Price FROM Book WHERE Price BETWEEN 300 AND 600 ORDER BY Price -- ORDERED
+;
+### 1
+SELECT Genre,COUNT(*),AVG(Price) FROM Book GROUP BY Genre HAVING COUNT(*)>=2
+;
+### 2
+SELECT Name,Title FROM Loan l JOIN Member m ON l.MemberID=m.MemberID JOIN Book b ON b.BookID=l.BookID WHERE ReturnDate IS NULL
+;
+### 3
+SELECT AuthorName FROM Author a WHERE NOT EXISTS(SELECT 1 FROM Book b WHERE b.AuthorID=a.AuthorID)
+;
+### 4
+SELECT Title,Price FROM Book WHERE Price=(SELECT MAX(Price) FROM Book)
+;
+### 5
+SELECT Name,COUNT(LoanID) FROM Member m LEFT JOIN Loan l ON l.MemberID=m.MemberID GROUP BY m.MemberID,Name
+;
+### 6
+SELECT DISTINCT Title FROM Loan l JOIN Member m ON l.MemberID=m.MemberID JOIN Book b ON b.BookID=l.BookID WHERE MemberType='Student'
+;
+### 7
+UPDATE Book SET Price=Price-50 WHERE Genre='Fiction'
+;
+-- PROBE
+SELECT * FROM Book;
+### 8
+SELECT Country FROM Author UNION SELECT City FROM Member
+;
+### 9
+CREATE TABLE Fine (Fine_ID INT AUTO_INCREMENT PRIMARY KEY, LoanID INT, Amount DECIMAL(8,2) NOT NULL, FOREIGN KEY (LoanID) REFERENCES Loan(LoanID))
+;
+-- PROBE
+SELECT column_name,column_type,column_key FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='fine';
+### 10
+SELECT Name FROM Member m JOIN Loan l ON l.MemberID=m.MemberID GROUP BY m.MemberID,Name HAVING COUNT(*)>1
+;
+### 11
+CREATE UNIQUE INDEX idx_title ON Book(Title)
+;
+-- PROBE
+SELECT index_name,non_unique,column_name FROM information_schema.statistics WHERE table_schema=DATABASE() AND table_name='book' AND index_name='idx_title';

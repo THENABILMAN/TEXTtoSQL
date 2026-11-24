@@ -1,0 +1,14 @@
+1. Show the First_Name, Last_Name of employees and the Course_Name they completed with a score above 85.
+2. Display Customer_Name and the total order amount (aliased as Total_Spent) for customers whose total is more than 80,000. Sort by Total_Spent descending.
+3. Display the Dept_Name and the first name of its manager. Include departments that have no manager.
+4. List employees who earn more than the average salary of their own department. Show First_Name, Dept_ID and Salary_Amount.
+5. Find all employees hired in 2024 whose email is a gmail address. Show First_Name, Email_Address, Hire_Date.
+6. Show Payment_Method, number of orders (aliased as Order_Count) and average amount (aliased as Avg_Amount) for delivered orders only.
+7. Display each employee's First_Name, Salary_Amount and Grade_Label from the salary_grade table based on the salary range.
+8. List the top 3 projects by total hours worked. Show Project_Name and Total_Hours.
+9. Simulate a FULL OUTER JOIN between employee and department to display First_Name and Dept_Name.
+10. Find departments that have no projects with status 'Active'. Show Dept_Name.
+11. Delete all training enrollments whose score is below 60.
+12. Create a trigger that prevents the deletion of a department that still has employees.
+13. Write a stored function GetAnnualSalary that takes an employee id and returns the annual salary (monthly salary times 12).
+14. Which employees have supervised at least 3 people? Show the supervisor's First_Name and the number of people supervised.
