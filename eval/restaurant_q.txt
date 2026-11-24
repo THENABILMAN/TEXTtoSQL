@@ -1,0 +1,20 @@
+1. Show the dish name and price of every dish in the Main course, most expensive first.
+2. Which staff members have a pay between 20,000 and 45,000? Show full_name and pay.
+3. Display each staff member's full name and the title of the outlet where they work. Staff without an outlet must also be shown.
+4. Show each staff member's full_name together with the full_name of the person they report to (aliased as Boss_Name), for those who report to somebody.
+5. How many bills were paid with each payment mode? Show pay_mode and the number as Bill_Count.
+6. Show the title of outlets that have never issued a bill.
+7. Find the total money earned from each dish (price times quantity). Show dish_name and the amount as Revenue, highest first.
+8. Show the dishes that were never ordered. Display dish_name.
+9. List bill_no and bill_date for bills in 2024 on which no tip was recorded.
+10. Show the total amount of each bill as Bill_Total with its bill_no, only for bills whose total exceeds 700.
+11. Find the full names of chefs who are paid more than the average pay of all staff.
+12. Show the title of the outlet with the highest monthly rent.
+13. Show the full_name of waiters who served Kacchi on at least one bill.
+14. Show the average pay per duty as Avg_Pay for duties having at least 2 people.
+15. Show the names of staff who have the same duty as Sumi, excluding Sumi.
+16. Raise the pay of all waiters by 12%.
+17. Cut the price of drinks by 10 taka.
+18. Remove all bill items belonging to bill number 103.
+19. Set the tip to 0 wherever it is missing.
+20. Create a view named Outlet_Income showing each outlet's title and its total income from dishes sold (price times quantity) as Income.

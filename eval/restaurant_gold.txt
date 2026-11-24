@@ -1,0 +1,52 @@
+### 1
+-- ORDERED
+SELECT dish_name, price FROM dish WHERE course='Main' ORDER BY price DESC;
+### 2
+SELECT full_name, pay FROM staff WHERE pay BETWEEN 20000 AND 45000;
+### 3
+SELECT s.full_name, o.title FROM staff s LEFT JOIN outlet o ON s.outlet_no=o.outlet_no;
+### 4
+SELECT s.full_name, m.full_name FROM staff s JOIN staff m ON s.reports_to=m.staff_no;
+### 5
+SELECT pay_mode, COUNT(*) FROM bill GROUP BY pay_mode;
+### 6
+SELECT title FROM outlet WHERE outlet_no NOT IN (SELECT outlet_no FROM bill);
+### 7
+-- ORDERED
+SELECT dish_name, SUM(price*qty) r FROM dish JOIN bill_item USING(dish_code) GROUP BY dish_code, dish_name ORDER BY r DESC;
+### 8
+SELECT dish_name FROM dish WHERE dish_code NOT IN (SELECT dish_code FROM bill_item);
+### 9
+SELECT bill_no, bill_date FROM bill WHERE YEAR(bill_date)=2024 AND tip IS NULL;
+### 10
+SELECT bill_no, SUM(price*qty) t FROM bill_item JOIN dish USING(dish_code) GROUP BY bill_no HAVING t>700;
+### 11
+SELECT full_name FROM staff WHERE duty='Chef' AND pay>(SELECT AVG(pay) FROM staff);
+### 12
+SELECT title FROM outlet WHERE monthly_rent=(SELECT MAX(monthly_rent) FROM outlet);
+### 13
+SELECT DISTINCT s.full_name FROM staff s JOIN bill b USING(staff_no) JOIN bill_item i USING(bill_no) JOIN dish d USING(dish_code) WHERE d.dish_name='Kacchi' AND s.duty='Waiter';
+### 14
+SELECT duty, AVG(pay) FROM staff GROUP BY duty HAVING COUNT(*)>=2;
+### 15
+SELECT full_name FROM staff WHERE duty=(SELECT duty FROM staff WHERE full_name='Sumi') AND full_name<>'Sumi';
+### 16
+UPDATE staff SET pay=pay*1.12 WHERE duty='Waiter';
+-- PROBE
+SELECT staff_no, pay FROM staff;
+### 17
+UPDATE dish SET price=price-10 WHERE course='Drink';
+-- PROBE
+SELECT dish_code, price FROM dish;
+### 18
+DELETE FROM bill_item WHERE bill_no=103;
+-- PROBE
+SELECT * FROM bill_item;
+### 19
+UPDATE bill SET tip=0 WHERE tip IS NULL;
+-- PROBE
+SELECT bill_no, tip FROM bill;
+### 20
+CREATE VIEW Outlet_Income AS SELECT o.title, SUM(d.price*i.qty) AS Income FROM outlet o JOIN bill b USING(outlet_no) JOIN bill_item i USING(bill_no) JOIN dish d USING(dish_code) GROUP BY o.outlet_no, o.title;
+-- PROBE
+SELECT title, Income FROM Outlet_Income WHERE Income IS NOT NULL;

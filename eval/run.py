@@ -1,7 +1,7 @@
 import json, subprocess, sys, os
 E = r'C:\TEXTtoSQL\pendrive\TextToSQL\TextToSQL.exe'; D = 'C:\\TEXTtoSQL\\eval\\'
 LAB = r'C:\Users\Nabil\Downloads\cse311_lab_06_database.sql'
-sets = {'q10': LAB, 'lab6': LAB, 'company': D+'company.sql', 'hospital': D+'hospital.sql', 'library': D+'library.sql'}
+sets = {'q10': LAB, 'lab6': LAB, 'company': D+'company.sql', 'hospital': D+'hospital.sql', 'library': D+'library.sql', 'restaurant': D+'restaurant.sql'}
 pick = sys.argv[1:] or list(sets)
 t = p = 0; secs = []
 for n in pick:
