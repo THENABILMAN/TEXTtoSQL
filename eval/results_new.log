@@ -1,0 +1,83 @@
+
+@@ lab6 Display each employee's First_Name, Salary_Amount and Grade_Label from the salary_grade table based on the salary range. | FAIL gold=55 got=55 tries 1 []  
+SELECT b.First_Name, c.Grade_Label
+FROM Employee b
+JOIN Salary_Grade c ON b.Salary_Amount BETWEEN c.Min_Salary AND c.Max_Salary;
+
+@@ company For every project located in 'Stafford', list the project number, the controlling department number, and the department manager's last name, address and birth date. | FAIL gold=2 got=0 tries 3 [] ERROR 1054: Unknown column 'd.Dlocation' in 'WHERE' 
+SELECT c.Pnumber, d.Dnumber, e.Lname, e.Address, e.Bdate
+FROM Project c
+JOIN Department d ON c.Dnum = d.Dnumber
+JOIN Employee e ON d.Mgr_ssn = e.Ssn
+WHERE d.Dlocation = 'Stafford';
+
+@@ company List the first and last names of managers who have at least one dependent. | FAIL gold=2 got=3 tries 1 []  
+SELECT m.Fname, m.Lname
+FROM Employee m
+JOIN Dependent d ON m.Ssn = d.Essn
+GROUP BY m.Ssn, m.Fname, m.Lname
+HAVING COUNT(d.Essn) > 0;
+
+@@ company Show the department name and the total hours worked on projects controlled by that department. | FAIL gold=3 got=3 tries 1 []  
+SELECT d.Dname, SUM(l.Hours) AS Total_Hours
+FROM Department d
+JOIN Employee b ON b.Dno = d.Dnumber
+JOIN Works_On l ON b.Ssn = l.Essn
+GROUP BY d.Dname;
+
+@@ company Find the first name and salary of employees who earn more than every employee in department 4. | FAIL gold=1 got=0 tries 1 []  
+SELECT b.Fname, b.Salary
+FROM Employee b
+WHERE b.Salary > ALL (SELECT c.Salary FROM Employee c WHERE c.Dno = b.Dno);
+
+@@ hospital Show the name of patients who were prescribed the medicine 'Losartan'. | FAIL gold=1 got=2 tries 1 []  
+SELECT DISTINCT patients.name FROM patients INNER JOIN prescriptions ON patients.patient_id = prescriptions.appointment_id INNER JOIN medicines ON prescriptions.medicine_id = medicines.medicine_id WHERE medicines.medicine_name = 'Losartan';
+
+@@ hospital For each specialty show the doctor with the highest consultation fee (specialty, full_name, consultation_fee). | FAIL gold=4 got=2 tries 2 ['two drafts gave different results; the other draft was:\nSELECT d.specialty, d.full_name, d.consultation_fee\nFROM doctors d\nWHERE d.consultation_fee = (SELECT MAX(e.consultation_fee) FROM doctors e);']  
+SELECT d.specialty, d.full_name, d.consultation_fee
+FROM doctors d
+JOIN appointments a ON d.doctor_id = a.doctor_id
+WHERE d.consultation_fee = (SELECT MAX(consultation_fee) FROM doctors);
+
+@@ library Display the member name and the title of each book that has not been returned yet. | FAIL gold=3 got=3 tries 1 []  
+SELECT b.Title, m.Name
+FROM Book b
+JOIN Loan l ON b.BookID = l.BookID
+JOIN Member m ON l.MemberID = m.MemberID
+WHERE l.ReturnDate IS NULL;
+
+@@ restaurant Show each staff member's full_name together with the full_name of the person they report to (aliased as Boss_Name), for those who report to somebody. | FAIL gold=7 got=10 tries 1 []  
+SELECT b.full_name, m.full_name AS Boss_Name
+FROM staff b
+LEFT JOIN staff m ON b.reports_to = m.staff_no;
+
+@@ restaurant Find the total money earned from each dish (price times quantity). Show dish_name and the amount as Revenue, highest first. | FAIL gold=6 got=11 tries 1 []  
+SELECT d.dish_name, d.price * bi.qty AS Revenue
+FROM dish d
+JOIN bill_item bi ON d.dish_code = bi.dish_code
+ORDER BY Revenue DESC;
+
+@@ restaurant List bill_no and bill_date for bills in 2024 on which no tip was recorded. | FAIL gold=1 got=0 tries 1 []  
+SELECT bill_no, bill_date
+FROM bill
+WHERE YEAR(bill_date) = 2024 AND tip = 0;
+
+@@ restaurant Find the full names of chefs who are paid more than the average pay of all staff. | FAIL gold=3 got=6 tries 1 []  
+SELECT b.full_name
+FROM staff b
+WHERE b.pay > (SELECT AVG(x.pay) FROM staff x);
+
+@@ restaurant Show the full_name of waiters who served Kacchi on at least one bill. | FAIL gold=3 got=0 tries 3 [] ERROR 1054: Unknown column 'i.staff_no' in 'ON' 
+SELECT DISTINCT b.full_name
+FROM staff b
+JOIN bill_item i ON b.staff_no = i.staff_no
+JOIN dish d ON i.dish_code = d.dish_code
+WHERE d.dish_name = 'Kacchi';
+
+@@ restaurant Show the average pay per duty as Avg_Pay for duties having at least 2 people. | FAIL gold=3 got=1 tries 1 ['two drafts gave different results; the other draft was:\nSELECT duty, AVG(pay) AS Avg_Pay\nFROM staff\nGROUP BY duty\nHAVING COUNT(*) >= 2;']  
+SELECT c.duty, AVG(b.pay) AS Avg_Pay
+FROM staff b
+JOIN staff c ON b.reports_to = c.staff_no
+GROUP BY c.duty
+HAVING COUNT(b.staff_no) >= 2;
+66 / 80 mean s 4.9

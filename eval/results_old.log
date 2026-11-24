@@ -1,0 +1,102 @@
+
+@@ q10 Write a SQL query to display each Instructor and their average course duration (aliased as True 2 []  
+SELECT Instructor, AVG(Duration_Hours) AS Avg_Course_Hours
+FROM Training_Course
+GROUP BY Instructor
+HAVING AVG(Duration_Hours) >= 30
+ORDER BY Avg_Course_Hours DESC;
+
+@@ lab6 Find departments that have no projects with status 'Active'. Show Dept_Name. | FAIL gold=1 got=0 tries 3 ["the value 'Active' is missing"]  
+SELECT d.Dept_Name
+FROM department d
+LEFT JOIN project p ON d.Dept_ID = p.Dept_ID
+WHERE p.Status IS NULL;
+
+@@ company List the first and last name of each employee and the last name of his or her supervisor (aliased as Boss). Include employees without a supervisor. | FAIL gold=8 got=8 tries 2 []  
+SELECT e.Fname, e.Lname, e.Super_ssn AS Boss
+FROM employee e
+LEFT JOIN employee es ON e.Super_ssn = es.Ssn;
+
+@@ company List the first and last names of managers who have at least one dependent. | FAIL gold=2 got=3 tries 2 ["two drafts gave different results; the other draft was:\nSELECT e.Fname, e.Lname\nFROM department d\nJOIN employee e ON d.Mgr_ssn = e.Ssn\nWHERE e.Sex = 'M' AND EXISTS (\n    SELECT 1\n    FROM dependent d2\n    WHERE d2.Essn = e.Ssn\n)\nGROUP BY e.Fname, e.Lname;"]  
+SELECT e.Fname, e.Lname
+FROM employee e
+JOIN department d ON e.Ssn = d.Mgr_ssn
+WHERE e.Ssn IS NOT NULL;
+
+@@ company Retrieve all employees whose address contains 'Houston'. Show first name and last name only. | FAIL gold=5 got=5 tries 1 []  
+SELECT T1.Fname, T1.Lname FROM employee AS T1 INNER JOIN dept_locations AS T2 ON T1.Dno = T2.Dnumber WHERE T2.Dlocation LIKE '%Houston%';
+
+@@ company Show the department name and the total hours worked on projects controlled by that department. | FAIL gold=3 got=3 tries 2 []  
+SELECT d.Dname, SUM(w.Hours) AS TotalHours
+FROM department d
+JOIN employee e ON d.Dnumber = e.Dno
+JOIN works_on w ON e.Ssn = w.Essn
+JOIN project p ON w.Pno = p.Pnumber
+GROUP BY d.Dname;
+
+@@ company Retrieve the SSNs of employees who work on project number 1 but not on project number 2, using EXCEPT. | FAIL gold=0 got=5 tries 3 ['the question asks for EXCEPT']  
+SELECT DISTINCT e.Ssn
+FROM employee e
+WHERE NOT EXISTS (
+  SELECT 1 FROM project p WHERE p.Pnumber = 2 AND EXISTS (
+    SELECT 1 FROM works_on w WHERE w.Essn = e.Ssn AND w.Pno = p.Pnumber
+  )
+);
+
+@@ library Display the member name and the title of each book that has not been returned yet. | FAIL gold=3 got=4 tries 1 []  
+SELECT m.Name, b.Title
+FROM member m
+LEFT JOIN loan l ON m.MemberID = l.MemberID
+LEFT JOIN book b ON l.BookID = b.BookID
+WHERE l.ReturnDate IS NULL;
+
+@@ library Reduce the price of all 'Fiction' books by 50. | FAIL gold=7 got=7 tries 2 []  
+UPDATE book
+SET Price = Price * 0.50
+WHERE Genre = 'Fiction';
+
+@@ restaurant Show each staff member's full_name together with the full_name of the person they report to (aliased as Boss_Name), for those who report to somebody. | FAIL gold=7 got=10 tries 1 ['two drafts gave different results; the other draft was:\nSELECT s.full_name AS Staff_Name, t.full_name AS Boss_Name\nFROM staff s\nLEFT JOIN staff t ON s.reports_to = t.staff_no\nWHERE t.staff_no IS NOT NULL;']  
+SELECT e.full_name AS Staff_Name, e.reports_to AS Boss_Name
+FROM staff AS e
+LEFT JOIN staff AS s ON e.reports_to = s.staff_no;
+
+@@ restaurant Show the total amount of each bill as Bill_Total with its bill_no, only for bills whose total exceeds 700. | FAIL gold=3 got=0 tries 3 [] ERROR 1054: Unknown column 'price' in 'SELECT' 
+SELECT bill_no, SUM(price) AS Bill_Total
+FROM bill
+GROUP BY bill_no
+HAVING SUM(price) > 700;
+
+@@ restaurant Find the full names of chefs who are paid more than the average pay of all staff. | FAIL gold=3 got=0 tries 2 []  
+SELECT T2.full_name
+FROM staff AS T1
+JOIN staff AS T2 ON T1.staff_no = T2.reports_to
+WHERE T1.duty = 'Chef'
+GROUP BY T2.staff_no
+HAVING AVG(T1.pay) < AVG(T2.pay);
+
+@@ restaurant Show the title of the outlet with the highest monthly rent. | FAIL gold=1 got=4 tries 1 []  
+SELECT T1.title
+FROM outlet AS T1
+JOIN (SELECT outlet_no, MAX(monthly_rent) AS max_rent
+      FROM outlet
+      GROUP BY outlet_no) AS T2
+ON T1.outlet_no = T2.outlet_no AND T1.monthly_rent = T2.max_rent;
+
+@@ restaurant Show the names of staff who have the same duty as Sumi, excluding Sumi. | FAIL gold=2 got=25 tries 1 []  
+SELECT s.full_name
+FROM staff s
+JOIN staff st ON s.duty = st.duty
+WHERE s.full_name != 'Sumi';
+
+@@ restaurant Cut the price of drinks by 10 taka. | FAIL gold=7 got=7 tries 1 ["two drafts gave different results; the other draft was:\nSELECT \n    d.dish_code,\n    d.dish_name,\n    d.course,\n    d.price * 0.90 AS discounted_price,\n    d.calories\nFROM \n    dish d\nJOIN \n    bill_item bi ON d.dish_code = bi.dish_code\nJOIN \n    bill b ON bi.bill_no = b.bill_no\nWHERE \n    b.pay_mode = 'Card'\nGROUP BY \n    d.dish_code, d.dish_name, d.course, d.price, d.calories;"]  
+SELECT 
+    dish_code, 
+    dish_name, 
+    course, 
+    price * 0.90 AS discounted_price, 
+    calories
+FROM 
+    dish
+WHERE 
+    course = 'Drink';
+66 / 80 mean s 6.6

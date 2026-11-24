@@ -1,0 +1,123 @@
+﻿train 8119 val 200 tokens mean 613 max 1026
+python.exe : 
+At line:1 char:361
++ ... ython.exe"; & $p C:\TEXTtoSQL\train\finetune.py --epochs 1 *> C:\TEXT ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]
+Loading weights:   3%|▎         | 10/338 [00:00<00:03, 94.59it/s]
+Loading weights:   6%|▌         | 20/338 [00:00<00:04, 78.47it/s]
+Loading weights:   9%|▊         | 29/338 [00:00<00:04, 75.21it/s]
+Loading weights:  11%|█         | 37/338 [00:00<00:04, 73.08it/s]
+Loading weights:  13%|█▎        | 45/338 [00:00<00:05, 49.51it/s]
+Loading weights:  15%|█▌        | 51/338 [00:00<00:05, 51.74it/s]
+Loading weights:  17%|█▋        | 57/338 [00:01<00:07, 37.21it/s]
+Loading weights:  19%|█▊        | 63/338 [00:01<00:07, 36.37it/s]
+Loading weights:  22%|██▏       | 73/338 [00:01<00:05, 46.48it/s]
+Loading weights:  23%|██▎       | 79/338 [00:01<00:06, 40.32it/s]
+Loading weights:  25%|██▌       | 86/338 [00:01<00:05, 44.12it/s]
+Loading weights:  29%|██▊       | 97/338 [00:01<00:04, 57.09it/s]
+Loading weights:  31%|███       | 104/338 [00:02<00:04, 55.38it/s]
+Loading weights:  33%|███▎      | 111/338 [00:02<00:04, 52.18it/s]
+Loading weights:  36%|███▌      | 120/338 [00:02<00:03, 58.70it/s]
+Loading weights:  38%|███▊      | 127/338 [00:02<00:04, 49.34it/s]
+Loading weights:  40%|███▉      | 135/338 [00:02<00:03, 52.60it/s]
+Loading weights:  42%|████▏     | 141/338 [00:02<00:03, 51.02it/s]
+Loading weights: 100%|██████████| 338/338 [00:02<00:00, 122.07it/s]
+C:\Users\Nabil\anaconda3\envs\textTOsql\Lib\site-packages\transformers\modeling_utils.py:3204: FutureWarning: 
+`gradient_checkpointing_enable` is deprecated and will be removed in v6. Use `activation_checkpointing_enable` instead.
+  warnings.warn(
+W1124 22:25:47.838000 38104 site-packages\torch\utils\flop_counter.py:113] triton not found; flop counting will not 
+work for triton kernels
+trainable params: 18,464,768 || all params: 1,562,179,072 || trainable%: 1.1820
+val loss before 0.5777  optimizer steps 507
+10/507 loss 0.5169  7.5 s/step  left 62 min  gpu 4.0 GB
+20/507 loss 0.3712  7.4 s/step  left 60 min  gpu 4.1 GB
+30/507 loss 0.2829  7.4 s/step  left 59 min  gpu 4.1 GB
+40/507 loss 0.2197  7.5 s/step  left 59 min  gpu 4.1 GB
+50/507 loss 0.1978  7.6 s/step  left 58 min  gpu 4.1 GB
+60/507 loss 0.1787  7.6 s/step  left 56 min  gpu 4.1 GB
+70/507 loss 0.1902  7.6 s/step  left 55 min  gpu 4.1 GB
+80/507 loss 0.1579  7.7 s/step  left 54 min  gpu 4.1 GB
+90/507 loss 0.1629  7.6 s/step  left 53 min  gpu 4.1 GB
+100/507 loss 0.1467  7.6 s/step  left 52 min  gpu 4.1 GB
+110/507 loss 0.1526  7.6 s/step  left 50 min  gpu 4.1 GB
+120/507 loss 0.1454  7.6 s/step  left 49 min  gpu 4.1 GB
+130/507 loss 0.1483  7.6 s/step  left 48 min  gpu 4.1 GB
+140/507 loss 0.1385  7.7 s/step  left 47 min  gpu 4.1 GB
+150/507 loss 0.1162  7.7 s/step  left 46 min  gpu 4.1 GB
+   val loss 0.1447
+160/507 loss 0.1124  7.8 s/step  left 45 min  gpu 4.1 GB
+170/507 loss 0.1061  7.9 s/step  left 44 min  gpu 4.1 GB
+180/507 loss 0.1245  7.8 s/step  left 43 min  gpu 4.1 GB
+190/507 loss 0.1375  7.8 s/step  left 41 min  gpu 4.1 GB
+200/507 loss 0.1264  7.8 s/step  left 40 min  gpu 4.1 GB
+210/507 loss 0.1417  7.8 s/step  left 39 min  gpu 4.1 GB
+220/507 loss 0.1239  7.8 s/step  left 37 min  gpu 4.1 GB
+230/507 loss 0.1089  7.8 s/step  left 36 min  gpu 4.1 GB
+240/507 loss 0.1061  7.8 s/step  left 35 min  gpu 4.1 GB
+250/507 loss 0.1366  7.7 s/step  left 33 min  gpu 4.1 GB
+260/507 loss 0.1278  7.7 s/step  left 32 min  gpu 4.1 GB
+270/507 loss 0.1130  7.7 s/step  left 31 min  gpu 4.1 GB
+280/507 loss 0.1029  7.7 s/step  left 29 min  gpu 4.1 GB
+290/507 loss 0.1154  7.7 s/step  left 28 min  gpu 4.1 GB
+300/507 loss 0.1115  7.7 s/step  left 27 min  gpu 4.1 GB
+   val loss 0.1272
+310/507 loss 0.1141  7.8 s/step  left 26 min  gpu 4.1 GB
+320/507 loss 0.1162  7.8 s/step  left 24 min  gpu 4.1 GB
+330/507 loss 0.1160  7.8 s/step  left 23 min  gpu 4.1 GB
+340/507 loss 0.0950  7.8 s/step  left 22 min  gpu 4.1 GB
+350/507 loss 0.1302  7.8 s/step  left 20 min  gpu 4.1 GB
+360/507 loss 0.1345  7.8 s/step  left 19 min  gpu 4.1 GB
+370/507 loss 0.1343  7.8 s/step  left 18 min  gpu 4.1 GB
+380/507 loss 0.1232  7.7 s/step  left 16 min  gpu 4.1 GB
+390/507 loss 0.1111  7.7 s/step  left 15 min  gpu 4.1 GB
+400/507 loss 0.1076  7.7 s/step  left 14 min  gpu 4.1 GB
+410/507 loss 0.1071  7.7 s/step  left 12 min  gpu 4.1 GB
+420/507 loss 0.1072  7.7 s/step  left 11 min  gpu 4.1 GB
+430/507 loss 0.1106  7.7 s/step  left 10 min  gpu 4.1 GB
+440/507 loss 0.1297  7.7 s/step  left 9 min  gpu 4.1 GB
+450/507 loss 0.1164  7.7 s/step  left 7 min  gpu 4.1 GB
+   val loss 0.1237
+460/507 loss 0.1013  7.8 s/step  left 6 min  gpu 4.1 GB
+470/507 loss 0.1342  7.8 s/step  left 5 min  gpu 4.1 GB
+480/507 loss 0.1007  7.8 s/step  left 3 min  gpu 4.1 GB
+490/507 loss 0.1330  7.8 s/step  left 2 min  gpu 4.1 GB
+500/507 loss 0.0994  7.8 s/step  left 1 min  gpu 4.1 GB
+507/507 loss 0.0975  7.8 s/step  left 0 min  gpu 4.1 GB
+   val loss 0.1232
+
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]
+Loading weights:   1%|▏         | 5/338 [00:00<00:08, 38.37it/s]
+Loading weights:   4%|▍         | 13/338 [00:00<00:05, 56.12it/s]
+Loading weights:   6%|▌         | 19/338 [00:00<00:07, 45.17it/s]
+Loading weights:   7%|▋         | 24/338 [00:00<00:08, 35.62it/s]
+Loading weights:   9%|▉         | 30/338 [00:00<00:08, 36.28it/s]
+Loading weights:  10%|█         | 34/338 [00:00<00:08, 34.00it/s]
+Loading weights:  11%|█         | 38/338 [00:01<00:08, 35.37it/s]
+Loading weights:  18%|█▊        | 62/338 [00:01<00:04, 65.23it/s]
+Loading weights:  21%|██        | 71/338 [00:01<00:04, 63.70it/s]
+Loading weights:  23%|██▎       | 77/338 [00:01<00:05, 51.06it/s]
+Loading weights:  24%|██▍       | 82/338 [00:01<00:06, 38.82it/s]
+Loading weights:  26%|██▌       | 87/338 [00:01<00:06, 38.57it/s]
+Loading weights:  27%|██▋       | 92/338 [00:02<00:06, 35.66it/s]
+Loading weights:  28%|██▊       | 96/338 [00:02<00:07, 33.59it/s]
+Loading weights:  30%|██▉       | 100/338 [00:02<00:07, 31.33it/s]
+Loading weights:  31%|███▏      | 106/338 [00:02<00:06, 34.39it/s]
+Loading weights:  33%|███▎      | 111/338 [00:02<00:06, 37.60it/s]
+Loading weights:  34%|███▍      | 116/338 [00:02<00:07, 28.17it/s]
+Loading weights:  36%|███▌      | 120/338 [00:03<00:08, 26.53it/s]
+Loading weights:  38%|███▊      | 130/338 [00:03<00:06, 33.06it/s]
+Loading weights:  40%|███▉      | 134/338 [00:03<00:06, 30.34it/s]
+Loading weights:  43%|████▎     | 147/338 [00:03<00:04, 44.07it/s]
+Loading weights:  45%|████▍     | 152/338 [00:03<00:05, 36.71it/s]
+Loading weights:  47%|████▋     | 158/338 [00:04<00:06, 29.20it/s]
+Loading weights:  48%|████▊     | 162/338 [00:04<00:06, 28.67it/s]
+Loading weights: 100%|██████████| 338/338 [00:04<00:00, 76.55it/s]
+
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]
+Writing model shards: 100%|██████████| 1/1 [00:03<00:00,  3.08s/it]
+Writing model shards: 100%|██████████| 1/1 [00:03<00:00,  3.08s/it]
+merged
