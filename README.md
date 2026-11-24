@@ -4,7 +4,7 @@ An **experimental** offline Text-to-SQL assistant for a university MySQL lab (CS
 Open a `.sql` database file, ask a question in English, and a small language model on your own PC writes the SQL.
 The app runs that SQL on a throwaway copy of the database before showing it, so your file is never changed.
 
-> **Status:** working prototype. About 82% correct on 80 graded questions. Not yet tested on a real 4 GB PC.
+> **Status:** working prototype. Runs on a real 4 GB RAM PC (tested by the author). About 82% correct on 80 graded questions.
 > Treat every answer as a draft and check it.
 
 ## Contents
@@ -30,7 +30,7 @@ Those limits shaped the main choices:
 
 | Choice | Reason |
 |---|---|
-| Qwen2.5-Coder 1.5B, 4-bit (986 MB) | A coding model small enough to aim for 4 GB of RAM |
+| Qwen2.5-Coder 1.5B, 4-bit (986 MB) | A coding model small enough for 4 GB of RAM |
 | llama.cpp on the CPU | Runs without a GPU or an installer |
 | Portable MariaDB 10.11 | Real MySQL-style syntax and errors, so answers can be tested |
 | C# compiled with the compiler that ships with Windows | A 79 KB program with no runtime to install |
@@ -104,13 +104,19 @@ WHERE Salary_Amount > 50000;
    answer's results are compared with a reference answer; for changes, the resulting database state is compared.
 4. **Improved it using the failures:** 48/60 at first, then 52/60 after fixing a broken check and adding the second
    opinion, among other changes.
-5. **Fine-tuned the model on a GPU** to see whether real training would beat retrieved examples.
+5. **Ran a fine-tuning experiment on a GPU** to see what training adds on top of retrieved examples and checks.
 6. **Compared both models** on the same app build and questions, plus 20 questions written before any results were seen.
-7. **Kept the original model,** because the fine-tuned one did not score higher.
+7. **Chose the model from the evidence:** the total scores were equal, so the original stayed, and the differences became
+   findings for the next round.
 
 ## Fine-tuning experiment
 
 **Question:** does training on lab-style SQL improve a 1.5B model that already gets examples and checks from the app?
+
+**Hypothesis:** yes, because the model would learn the course's question style directly.
+
+**Method:** train one model, change nothing else, and run both models through the same app on the same questions. The
+rule was set before the comparison: the new model replaces the original only if it scores higher.
 
 | Setting | Value |
 |---|---|
@@ -160,13 +166,24 @@ Same app build, 80 graded questions, on an i7-13700HX using the CPU only:
 
 \* Includes the 10 ungraded sample lab questions.
 
-- **Fine-tuned was better at** finding missing rows, supervisor names, `EXCEPT`, and "reduce by 50" updates.
-- **Fine-tuned was worse at** some longer joins, totals per item and `IS NULL`. It also tended to copy patterns from its
-  training data.
-- **Sample lab questions (10):** both models' SQL ran on all 10, but the fine-tuned model got the `RIGHT JOIN` one wrong.
+### Findings
 
-**Conclusion:** one round of fine-tuning changed *which* questions were right, but not *how many*. The app ships the
-original model.
+The total was the same, but the two models are not: 18 of the 80 questions changed outcome (9 gained, 9 lost).
+
+| Finding | Evidence |
+|---|---|
+| **Training taught new skills** | Newly correct on 9 questions, including missing rows, supervisor names, `EXCEPT` and "reduce by 50" updates |
+| **It also cost some existing ones** | Newly wrong on 9 questions, including some longer joins, totals per item and `IS NULL` |
+| **Answers came faster** | 4.9 s against 6.6 s per question on average |
+| **It copied training patterns** | It often reused the table aliases of the generated queries (`b`, `c`, `l`) on other databases |
+| **Validation loss was a poor guide** | It fell by 79% while the graded score stayed the same |
+| **The sample lab questions favour the original** | Both ran on all 10, but the fine-tuned model got the `RIGHT JOIN` one wrong |
+
+**Conclusion:** the hypothesis was not supported for this setup. One epoch on this data changed *which* questions were
+right, but not *how many*. A likely reason is that about half the data came from a fixed set of question templates.
+
+**What this is useful for:** it shows that the pipeline runs on a 6 GB laptop GPU in about an hour, gives a measured
+baseline, and suggests what to try next: blending the models, and more varied data.
 
 How far to trust these numbers:
 
@@ -187,8 +204,8 @@ How far to trust these numbers:
 
 ## Limitations
 
-- **Not tested on a 4 GB PC.** In development the model process used about 1.2 GB and the database about 60 MB. Expect
-  slower answers than in the table above.
+- **Speed on weak PCs.** It works on a 4 GB PC, but answer times there were not measured. The times above are from a
+  much faster CPU. In development the model process used about 1.2 GB and the database about 60 MB.
 - It cannot answer every question. Multi-step joins and loosely worded questions are the weakest areas.
 - It targets MySQL/MariaDB. Other dialects are only partly converted.
 - The model has no memory of earlier questions.
@@ -244,7 +261,7 @@ ollama create -q q4_K_M t2s-ft -f Modelfile
 
 ## Next steps
 
-- Test on a real 4 GB PC from the pendrive.
+- Measure answer times and memory use on the 4 GB PC.
 - Blend the two models by applying the LoRA at half strength, then test on fresh questions.
 - Use more varied training questions, so the model copies patterns less.
 
